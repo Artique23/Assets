@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class MenusUIScript : MonoBehaviour
 {
@@ -22,4 +23,50 @@ public class MenusUIScript : MonoBehaviour
     {
         
     }
+
+    // LEVELS Loading Scenes Code
+    public void LoadLevel1()
+    {
+        Debug.Log("Loaded Level 1...");
+        SceneManager.LoadScene("Level1Scene");
+    }
+    public void LoadLevel2()
+    {
+        Debug.Log("Loaded Level 2...");
+        SceneManager.LoadScene("Level2Scene");
+    }
+        public void LoadLevel3()
+    {
+        Debug.Log("Loaded Level 3...");
+        SceneManager.LoadScene("Level3Scene");
+    }
+        public void LoadLevel4()
+    {
+        Debug.Log("Loaded Level 4...");
+        SceneManager.LoadScene("Level4Scene");
+    }
+        public void LoadLevel5()
+    {
+        Debug.Log("Loaded Level 5...");
+        SceneManager.LoadScene("Level5Scene");
+    }
+    // End for LEVELS Loading Scenes Code
+
+    // QUIZ Loading Scenes Code
+    public void LoadMCQEasy()
+    {
+        Debug.Log("Loaded MCQEasy...");
+        SceneManager.LoadScene("1QuizEasy");
+    }
+    public void LoadMCQAverage()
+    {
+        Debug.Log("Loaded MCQAverage...");
+        SceneManager.LoadScene("2QuizAverage");
+    }
+        public void LoadMCQDifficult()
+    {
+        Debug.Log("Loaded MCQAverage...");
+        SceneManager.LoadScene("3QuizDifficult");
+    }
+    // End for QUIZ Loading Scenes Code
 }
