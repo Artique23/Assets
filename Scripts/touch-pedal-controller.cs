@@ -1,129 +1,124 @@
 using UnityEngine;
+using UnityEngine.UI;
 
-public class TouchPedalController : MonoBehaviour
+public class CarUIController : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private CarUIController carUIController;
-    [SerializeField] private RectTransform acceleratorPedalArea;
-    [SerializeField] private RectTransform brakePedalArea;
+    [SerializeField] private CarController carController;
     
-    [Header("Pedal Behavior")]
-    [SerializeField] private float sensitivityMultiplier = 1.0f;
-    [SerializeField] private float pressHoldIncrement = 0.05f;
-    [SerializeField] private float pressHoldDelay = 0.1f;
+    [Header("Pedals")]
+    [SerializeField] public Slider acceleratorPedal; // Changed to public for access from TouchPedalController
+    [SerializeField] public Slider brakePedal; // Changed to public for access from TouchPedalController
     
-    // Touch tracking
-    private int acceleratorTouchId = -1;
-    private int brakeTouchId = -1;
-    private Vector2 acceleratorTouchStartPos;
-    private Vector2 brakeTouchStartPos;
-    private float lastAcceleratorHoldTime = 0f;
-    private float lastBrakeHoldTime = 0f;
+    [Header("UI Elements")]
+    [SerializeField] private RectTransform acceleratorPedalPressPoint;
+    [SerializeField] private RectTransform brakePedalPressPoint;
+    [SerializeField] private float pedalPressDepth = 50f;
+    
+    [Header("Auto-Return Settings")]
+    [SerializeField] private float acceleratorReturnSpeed = 2.0f;
+    [SerializeField] private float brakeReturnSpeed = 1.5f;
+    
+    // Touch state tracking
+    private bool isAcceleratorPressed = false;
+    private bool isBrakePressed = false;
     
     private void Update()
     {
-        HandleTouchInput();
-        HandleKeyboardInput(); // For debugging in editor
-    }
-    
-    private void HandleTouchInput()
-    {
-        // Process all touches
-        for (int i = 0; i < Input.touchCount; i++)
+        // Handle pedal auto-return when released
+        if (!isAcceleratorPressed && acceleratorPedal.value > 0)
         {
-            Touch touch = Input.touches[i];
-            Vector2 touchPos = touch.position;
-            
-            // Handle touch began
-            if (touch.phase == TouchPhase.Began)
-            {
-                // Check if touch is on accelerator
-                if (RectTransformUtility.RectangleContainsScreenPoint(acceleratorPedalArea, touchPos) && acceleratorTouchId == -1)
-                {
-                    acceleratorTouchId = touch.fingerId;
-                    acceleratorTouchStartPos = touchPos;
-                    carUIController.OnAcceleratorDown();
-                }
-                // Check if touch is on brake
-                else if (RectTransformUtility.RectangleContainsScreenPoint(brakePedalArea, touchPos) && brakeTouchId == -1)
-                {
-                    brakeTouchId = touch.fingerId;
-                    brakeTouchStartPos = touchPos;
-                    carUIController.OnBrakeDown();
-                }
-            }
-            // Handle touch moved
-            else if (touch.phase == TouchPhase.Moved)
-            {
-                // Process accelerator movement
-                if (touch.fingerId == acceleratorTouchId)
-                {
-                    float deltaY = touchPos.y - acceleratorTouchStartPos.y;
-                    carUIController.OnAcceleratorTouchDelta(-deltaY * sensitivityMultiplier);
-                    acceleratorTouchStartPos = touchPos;
-                }
-                // Process brake movement
-                else if (touch.fingerId == brakeTouchId)
-                {
-                    float deltaY = touchPos.y - brakeTouchStartPos.y;
-                    carUIController.OnBrakeTouchDelta(-deltaY * sensitivityMultiplier);
-                    brakeTouchStartPos = touchPos;
-                }
-            }
-            // Handle touch stationary
-            else if (touch.phase == TouchPhase.Stationary)
-            {
-                // For pedals, we can implement a gradual "press harder" mechanism
-                if (touch.fingerId == acceleratorTouchId)
-                {
-                    if (Time.time > lastAcceleratorHoldTime + pressHoldDelay)
-                    {
-                        carUIController.OnAcceleratorTouchDelta(-pressHoldIncrement * 100);
-                        lastAcceleratorHoldTime = Time.time;
-                    }
-                }
-                else if (touch.fingerId == brakeTouchId)
-                {
-                    if (Time.time > lastBrakeHoldTime + pressHoldDelay)
-                    {
-                        carUIController.OnBrakeTouchDelta(-pressHoldIncrement * 100);
-                        lastBrakeHoldTime = Time.time;
-                    }
-                }
-            }
-            // Handle touch ended or cancelled
-            else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-            {
-                if (touch.fingerId == acceleratorTouchId)
-                {
-                    acceleratorTouchId = -1;
-                    carUIController.OnAcceleratorUp();
-                }
-                else if (touch.fingerId == brakeTouchId)
-                {
-                    brakeTouchId = -1;
-                    carUIController.OnBrakeUp();
-                }
-            }
-        }
-    }
-    
-    private void HandleKeyboardInput()
-    {
-        // Debug inputs for testing in Unity Editor
-        if (Input.GetKey(KeyCode.UpArrow))
-        {
-            carUIController.SetAcceleratorValue(Mathf.Min(1f, carUIController.GetComponent<Slider>().value + 0.01f));
-        }
-        if (Input.GetKey(KeyCode.DownArrow))
-        {
-            carUIController.SetBrakeValue(Mathf.Min(1f, carUIController.GetComponent<Slider>().value + 0.01f));
+            acceleratorPedal.value = Mathf.Max(0, acceleratorPedal.value - acceleratorReturnSpeed * Time.deltaTime);
         }
         
-        // For gear shifting with keyboard
-        if (Input.GetKeyDown(KeyCode.P)) carUIController.SetGearPark();
-        if (Input.GetKeyDown(KeyCode.R)) carUIController.SetGearReverse();
-        if (Input.GetKeyDown(KeyCode.N)) carUIController.SetGearNeutral();
-        if (Input.GetKeyDown(KeyCode.D)) carUIController.SetGearDrive();
+        if (!isBrakePressed && brakePedal.value > 0)
+        {
+            brakePedal.value = Mathf.Max(0, brakePedal.value - brakeReturnSpeed * Time.deltaTime);
+        }
+        
+        // Animate the pedals based on values
+        if (acceleratorPedalPressPoint != null)
+        {
+            Vector3 acceleratorPos = acceleratorPedalPressPoint.localPosition;
+            acceleratorPos.y = -pedalPressDepth * acceleratorPedal.value;
+            acceleratorPedalPressPoint.localPosition = acceleratorPos;
+        }
+        
+        if (brakePedalPressPoint != null)
+        {
+            Vector3 brakePos = brakePedalPressPoint.localPosition;
+            brakePos.y = -pedalPressDepth * brakePedal.value;
+            brakePedalPressPoint.localPosition = brakePos;
+        }
+    }
+    
+    // Accelerator pedal methods for UI buttons
+    public void OnAcceleratorDown()
+    {
+        isAcceleratorPressed = true;
+    }
+    
+    public void OnAcceleratorUp()
+    {
+        isAcceleratorPressed = false;
+    }
+    
+    public void SetAcceleratorValue(float value)
+    {
+        acceleratorPedal.value = value;
+    }
+    
+    // Brake pedal methods for UI buttons
+    public void OnBrakeDown()
+    {
+        isBrakePressed = true;
+    }
+    
+    public void OnBrakeUp()
+    {
+        isBrakePressed = false;
+    }
+    
+    public void SetBrakeValue(float value)
+    {
+        brakePedal.value = value;
+    }
+    
+    // Methods to call on touch events for pedals
+    public void OnAcceleratorTouchDelta(float delta)
+    {
+        if (isAcceleratorPressed)
+        {
+            acceleratorPedal.value = Mathf.Clamp01(acceleratorPedal.value + delta * 0.01f);
+        }
+    }
+    
+    public void OnBrakeTouchDelta(float delta)
+    {
+        if (isBrakePressed)
+        {
+            brakePedal.value = Mathf.Clamp01(brakePedal.value + delta * 0.01f);
+        }
+    }
+    
+    // Gear control methods to call from UI buttons
+    public void SetGearPark()
+    {
+        carController.SetGearState(CarController.GearState.Park);
+    }
+    
+    public void SetGearReverse()
+    {
+        carController.SetGearState(CarController.GearState.Reverse);
+    }
+    
+    public void SetGearNeutral()
+    {
+        carController.SetGearState(CarController.GearState.Neutral);
+    }
+    
+    public void SetGearDrive()
+    {
+        carController.SetGearState(CarController.GearState.Drive);
     }
 }
