@@ -7,8 +7,8 @@ public class CarUIController : MonoBehaviour
     [SerializeField] private CarController carController;
     
     [Header("Pedals")]
-    [SerializeField] private Slider acceleratorPedal;
-    [SerializeField] private Slider brakePedal;
+    [SerializeField] public Slider acceleratorPedal; // Changed to public for access from TouchPedalController
+    [SerializeField] public Slider brakePedal; // Changed to public for access from TouchPedalController
     
     [Header("UI Elements")]
     [SerializeField] private RectTransform acceleratorPedalPressPoint;
