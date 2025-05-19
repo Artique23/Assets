@@ -44,7 +44,7 @@ public class PlayerManager : MonoBehaviour
             Debug.Log("Updated currency to: " + playerCurrency);
         }
     }
-    
+
     void Awake()
     {
         // If there's already a PlayerManager, destroy this one
@@ -53,21 +53,23 @@ public class PlayerManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-        
+
         // Otherwise, this is THE player manager
         Instance = this;
-        
+
         // Make it survive when switching scenes
         DontDestroyOnLoad(gameObject);
-        
+
         // Set save file location
         saveFilePath = Path.Combine(Application.persistentDataPath, "playerProgress.json");
-        
+
         // Set the first car to be always unlocked
         unlockedCars[0] = true;
-        
+
         // Load player data when game starts
         LoadPlayerData();
+        
+        Debug.Log("Save file is at: " + saveFilePath);
     }
     
     // Functions for other scripts to use

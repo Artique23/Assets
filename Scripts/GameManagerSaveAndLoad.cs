@@ -48,18 +48,19 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         UpdateUI();
     }
     
+    // For testing only
      public void ResetGame()
     {
         // Call the reset method in PlayerManager
         PlayerManager.Instance.ResetProgress();
-        
+
         // Display the first car
         currentDisplayIndex = 0;
         DisplayCurrentCar();
-        
+
         // Update UI
         UpdateUI();
-        
+
         Debug.Log("TESTING: Game reset to default state!");
     }
     
@@ -135,13 +136,6 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         {
             Debug.Log("Not enough stars to buy " + carName + "! (Costs: " + price + " stars)");
         }
-    }
-    
-    // Add stars button (for testing)
-    public void AddStars(int amount)
-    {
-        PlayerManager.Instance.AddCurrency(amount);
-        UpdateUI();
     }
     
     // Update all UI elements based on current state
