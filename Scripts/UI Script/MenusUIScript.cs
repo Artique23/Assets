@@ -8,12 +8,19 @@ using DG.Tweening;
 
 public class MenusUIScript : MonoBehaviour
 {
-    [SerializeField] GameObject GeneralUI, MainMenuUI, StartMenuUI, StoryModeUI,SettingsUI,AboutUI;
+    [SerializeField] GameObject GeneralUI, MainMenuUI, StartMenuUI, StoryModeUI, SettingsUI, AboutUI;
 
     // Animations Using Dotween
     [SerializeField] RectTransform MainMenuLowerPanel;
     [SerializeField] float bottomY, baseY;
     [SerializeField] float tweenDuration;
+
+    [Header("Fade Animations")]
+    [SerializeField] private CanvasGroup startMenuCanvasGroup;  // Assign in inspector
+    [SerializeField] private float fadeInDuration = 0.5f;
+    [SerializeField] private float fadeOutDuration = 0.3f;
+    [SerializeField] private Ease fadeInEase = Ease.OutQuad;
+    [SerializeField] private Ease fadeOutEase = Ease.InQuad;
     // Start is called before the first frame update
     void Start()
     {
@@ -43,18 +50,27 @@ public class MenusUIScript : MonoBehaviour
         AboutUI.SetActive(false);
     }
 
-    void ShowStartMenu()
+    public void ShowStartMenu()
     {
-        Debug.Log("Main Menu is isNotVisible...");
-        GeneralUI.SetActive(true);
-        MainMenuUI.SetActive(false);
-        StartMenuUI.SetActive(true);
-        StoryModeUI.SetActive(false);
-        SettingsUI.SetActive(false);
-        AboutUI.SetActive(false);
+    Debug.Log("Start Menu is fading in...");
+    GeneralUI.SetActive(true);
+    MainMenuUI.SetActive(false);
+    
+    // Make sure the panel is active but fully transparent at first
+    StartMenuUI.SetActive(true);
+    startMenuCanvasGroup.alpha = 0f;
+    
+    // Fade in the start menu panel
+    startMenuCanvasGroup.DOFade(1f, fadeInDuration)
+        .SetEase(fadeInEase);
+    
+    // Keep other panels hidden
+    StoryModeUI.SetActive(false);
+    SettingsUI.SetActive(false);
+    AboutUI.SetActive(false);
     }
 
-        void ShowAboutMenu()
+    void ShowAboutMenu()
     {
         Debug.Log("Main Menu is Visible...");
         GeneralUI.SetActive(true);
@@ -90,17 +106,17 @@ public class MenusUIScript : MonoBehaviour
         Debug.Log("Loaded Level 2...");
         SceneManager.LoadScene("Level2Scene");
     }
-        public void LoadLevel3()
+    public void LoadLevel3()
     {
         Debug.Log("Loaded Level 3...");
         SceneManager.LoadScene("Level3Scene");
     }
-        public void LoadLevel4()
+    public void LoadLevel4()
     {
         Debug.Log("Loaded Level 4...");
         SceneManager.LoadScene("Level4Scene");
     }
-        public void LoadLevel5()
+    public void LoadLevel5()
     {
         Debug.Log("Loaded Level 5...");
         SceneManager.LoadScene("Level5Scene");
@@ -118,7 +134,7 @@ public class MenusUIScript : MonoBehaviour
         Debug.Log("Loaded MCQAverage...");
         SceneManager.LoadScene("2QuizAverage");
     }
-        public void LoadMCQDifficult()
+    public void LoadMCQDifficult()
     {
         Debug.Log("Loaded MCQAverage...");
         SceneManager.LoadScene("3QuizDifficult");
@@ -136,7 +152,7 @@ public class MenusUIScript : MonoBehaviour
         StartCoroutine(DelayedStartMainMenu(0.4f));
     }
 
-        public void MainMenuLowerPanelOutro4About()
+    public void MainMenuLowerPanelOutro4About()
     {
         MainMenuLowerPanel.DOAnchorPosY(bottomY, tweenDuration);
         StartCoroutine(DelayedAboutMainMenu(0.4f));
@@ -148,7 +164,7 @@ public class MenusUIScript : MonoBehaviour
         StartCoroutine(DelayedSettingsMainMenu(0.4f));
     }
 
-        public void MainMenuLowerPanelIntroFromAbout()
+    public void MainMenuLowerPanelIntroFromAbout()
     {
         MainMenuLowerPanel.DOAnchorPosY(baseY, tweenDuration);
         ShowMainMenu();
@@ -160,7 +176,14 @@ public class MenusUIScript : MonoBehaviour
         ShowMainMenu();
     }
 
+    public void MainMenuLowerPanelIntroFromStart()
+    {
+        MainMenuLowerPanel.DOAnchorPosY(baseY, tweenDuration);
+        ShowMainMenu();
+    }
+
     
+
 
     IEnumerator DelayedStartMainMenu(float delay)
     {
@@ -175,13 +198,17 @@ public class MenusUIScript : MonoBehaviour
         yield return new WaitForSeconds(delay);
         ShowAboutMenu();
     }
-        IEnumerator DelayedSettingsMainMenu(float delay)
+    IEnumerator DelayedSettingsMainMenu(float delay)
     {
         yield return new WaitForSeconds(delay);
         ShowSettingsMenu();
     }
 
     // END Main Menu UI Animation
+
+    // On Start Menu Button Click
+
+
 
 
 
