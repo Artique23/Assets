@@ -1,88 +1,227 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
+using UnityEngine.UI;
+using TMPro;
 
-public class SaveAndLoadScript : MonoBehaviour
+public class GameManagerSaveAndLoad : MonoBehaviour
 {
-    [SerializeField] private GameObject[] carPrefabs; // Array of car prefabs
-    
-    private int currentCarIndex = 0;
-    private GameObject currentCarInstance;
-    private string saveFilePath;
-    
-    void Start()
+    [System.Serializable]
+    public class CarInfo
     {
-        // Set up save file path
-        saveFilePath = Path.Combine(Application.persistentDataPath, "carSelection.json");
-        
-        // Load previous car selection if available
-        LoadCarSelection();
-        
-        // Spawn the current car
-        SpawnCurrentCar();
+        public GameObject carPrefab;
+        public int price;
+        public string carName;
     }
     
+    [SerializeField] private CarInfo[] carCatalog; // Info about each car
+    
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI currencyText;
+    [SerializeField] private GameObject lockOverlay;
+    [SerializeField] private GameObject buyButton;
+    [SerializeField] private GameObject selectButton; // Reference to the select button
+    [SerializeField] private TextMeshProUGUI priceText;
+    [SerializeField] private TextMeshProUGUI carNameText;
+    [SerializeField] private GameObject selectedIndicator; // Optional - an object that shows this car is selected
+    
+    private int currentDisplayIndex = 0;
+    private GameObject currentCarInstance;
+    
+    // This is called when the shop screen loads
+    void Start()
+    {
+        // Make sure we have a player manager
+        if (PlayerManager.Instance == null)
+        {
+            Debug.LogError("No PlayerManager found! Make sure it exists in the scene.");
+            return;
+        }
+        
+        // Set the display index to the player's selected car
+        currentDisplayIndex = PlayerManager.Instance.GetSelectedCar();
+        
+        // Show the current car
+        DisplayCurrentCar();
+        
+        // Update all UI elements
+        UpdateUI();
+    }
+    
+     public void ResetGame()
+    {
+        // Call the reset method in PlayerManager
+        PlayerManager.Instance.ResetProgress();
+        
+        // Display the first car
+        currentDisplayIndex = 0;
+        DisplayCurrentCar();
+        
+        // Update UI
+        UpdateUI();
+        
+        Debug.Log("TESTING: Game reset to default state!");
+    }
+    
+    // Next and Previous car buttons
     public void NextCar()
     {
-        currentCarIndex++;
-        if (currentCarIndex >= carPrefabs.Length)
-            currentCarIndex = 0;
-            
-        SpawnCurrentCar();
-        SaveCarSelection();
+        currentDisplayIndex++;
+        if (currentDisplayIndex >= carCatalog.Length)
+            currentDisplayIndex = 0;
+
+        DisplayCurrentCar();
+        UpdateUI();
     }
     
     public void PreviousCar()
     {
-        currentCarIndex--;
-        if (currentCarIndex < 0)
-            currentCarIndex = carPrefabs.Length - 1;
+        currentDisplayIndex--;
+        if (currentDisplayIndex < 0)
+            currentDisplayIndex = carCatalog.Length - 1;
             
-        SpawnCurrentCar();
-        SaveCarSelection();
+        DisplayCurrentCar();
+        UpdateUI();
     }
     
-    private void SpawnCurrentCar()
+    // Select the current car (if unlocked)
+    public void SelectCar()
     {
-        // Destroy previous car instance if it exists
+        // Only select if car is unlocked
+        if (PlayerManager.Instance.IsCarUnlocked(currentDisplayIndex))
+        {
+            // Get car name before setting it as selected
+            string carName = carCatalog[currentDisplayIndex].carName;
+            
+            // Set as selected car
+            PlayerManager.Instance.SetSelectedCar(currentDisplayIndex);
+            
+            // Log detailed information
+            Debug.Log("Selected car: " + carName + " (Index: " + currentDisplayIndex + ")");
+            Debug.Log("This car will now be used in the game!");
+            
+            // Update UI to hide select button for currently selected car
+            UpdateUI();
+        }
+        else
+        {
+            Debug.Log("Can't select locked car!");
+        }
+    }
+    
+    // Buy button was clicked
+    public void BuyCar()
+    {
+        // Get the current car price
+        int price = carCatalog[currentDisplayIndex].price;
+        string carName = carCatalog[currentDisplayIndex].carName;
+        
+        // Try to spend currency
+        if (PlayerManager.Instance.SpendCurrency(price))
+        {
+            // Purchase successful
+            PlayerManager.Instance.UnlockCar(currentDisplayIndex);
+            
+            // Select this car automatically
+            PlayerManager.Instance.SetSelectedCar(currentDisplayIndex);
+            
+            Debug.Log("Car purchased: " + carName + " for " + price + " stars!");
+            Debug.Log("This car is now selected and will be used in the game.");
+            
+            // Update UI to show new state
+            UpdateUI();
+        }
+        else
+        {
+            Debug.Log("Not enough stars to buy " + carName + "! (Costs: " + price + " stars)");
+        }
+    }
+    
+    // Add stars button (for testing)
+    public void AddStars(int amount)
+    {
+        PlayerManager.Instance.AddCurrency(amount);
+        UpdateUI();
+    }
+    
+    // Update all UI elements based on current state
+    public void UpdateUI() 
+    {
+        // Update currency display
+        if (currencyText != null)
+        {
+            currencyText.text = PlayerManager.Instance.GetCurrency().ToString();
+        }
+        
+        // Update car-specific UI
+        if (currentDisplayIndex >= 0 && currentDisplayIndex < carCatalog.Length)
+        {
+            // Is this car unlocked?
+            bool isUnlocked = PlayerManager.Instance.IsCarUnlocked(currentDisplayIndex);
+            
+            // Is this the currently selected car?
+            bool isSelected = (PlayerManager.Instance.GetSelectedCar() == currentDisplayIndex);
+            
+            // Show/hide lock icon
+            if (lockOverlay != null)
+            {
+                lockOverlay.SetActive(!isUnlocked);
+            }
+            
+            // Show/hide buy button
+            if (buyButton != null)
+            {
+                // Only show button if car is locked AND player has enough money
+                bool canAfford = PlayerManager.Instance.GetCurrency() >= carCatalog[currentDisplayIndex].price;
+                buyButton.SetActive(!isUnlocked && canAfford);
+            }
+            
+            // Show/hide select button based on unlock status AND if it's already selected
+            if (selectButton != null)
+            {
+                // Show select button only if:
+                // 1. Car is unlocked AND
+                // 2. Car is NOT currently selected
+                selectButton.SetActive(isUnlocked && !isSelected);
+            }
+            else
+            {
+                Debug.LogWarning("Select Button is not assigned in the Inspector!");
+            }
+            
+            // Show/hide selected indicator (if we have one)
+            if (selectedIndicator != null)
+            {
+                selectedIndicator.SetActive(isSelected);
+            }
+            
+            // Update price text
+            if (priceText != null)
+            {
+                int price = carCatalog[currentDisplayIndex].price;
+                priceText.text = price.ToString() + " Stars";
+                priceText.gameObject.SetActive(!isUnlocked);
+            }
+            
+            // Update car name
+            if (carNameText != null)
+            {
+                carNameText.text = carCatalog[currentDisplayIndex].carName;
+            }
+        }
+    }
+    
+    // Display the current car in the viewer
+    private void DisplayCurrentCar()
+    {
+        // Remove old car if it exists
         if (currentCarInstance != null)
             Destroy(currentCarInstance);
         
-        // Instantiate selected car prefab at its default position
-        currentCarInstance = Instantiate(carPrefabs[currentCarIndex]);
-        
-        // Car will spawn at the position and rotation that is set in the prefab
-    }
-    
-    private void SaveCarSelection()
-    {
-        CarSelectionData data = new CarSelectionData
+        // Create new car if valid index
+        if (currentDisplayIndex >= 0 && currentDisplayIndex < carCatalog.Length)
         {
-            selectedCarIndex = currentCarIndex
-        };
-        
-        string jsonData = JsonUtility.ToJson(data);
-        File.WriteAllText(saveFilePath, jsonData);
-    }
-    
-    private void LoadCarSelection()
-    {
-        if (File.Exists(saveFilePath))
-        {
-            string jsonData = File.ReadAllText(saveFilePath);
-            CarSelectionData data = JsonUtility.FromJson<CarSelectionData>(jsonData);
-            
-            // Make sure the loaded index is valid
-            if (data.selectedCarIndex >= 0 && data.selectedCarIndex < carPrefabs.Length)
-                currentCarIndex = data.selectedCarIndex;
+            currentCarInstance = Instantiate(carCatalog[currentDisplayIndex].carPrefab);
         }
     }
-}
-
-
-[System.Serializable]
-public class CarSelectionData
-{
-    public int selectedCarIndex;
 }
