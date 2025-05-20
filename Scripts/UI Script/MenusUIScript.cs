@@ -8,7 +8,8 @@ using DG.Tweening;
 
 public class MenusUIScript : MonoBehaviour
 {
-    [SerializeField] GameObject GeneralUI, MainMenuUI, StartMenuUI, StoryModeUI, SettingsUI, AboutUI, JPXCustomize, JhayluxCustomize,DreivusCustomize;
+    #region Variables
+    [SerializeField] GameObject GeneralUI, MainMenuUI, StartMenuUI, StoryModeUI, SettingsUI, AboutUI, JPXCustomize, JhayluxCustomize, DreivusCustomize;
 
     // Animations Using Dotween
     [SerializeField] RectTransform MainMenuLowerPanel;
@@ -16,18 +17,21 @@ public class MenusUIScript : MonoBehaviour
     [SerializeField] float tweenDuration;
 
     GameManagerSaveAndLoad gameManager;
-    
-    // Flag to track if customization panels are visible
-    private bool isCustomizePanelVisible = false;
 
+    #endregion
 
+    #region AnimationVariables
     [Header("Fade Animations")]
     [SerializeField] private CanvasGroup startMenuCanvasGroup;  // Assign in inspector
     [SerializeField] private float fadeInDuration = 0.5f;
     [SerializeField] private float fadeOutDuration = 0.3f;
     [SerializeField] private Ease fadeInEase = Ease.OutQuad;
     [SerializeField] private Ease fadeOutEase = Ease.InQuad;
+
+    #endregion
     // Start is called before the first frame update
+
+    #region OnStart
     void Start()
     {
         GeneralUI.SetActive(true);
@@ -41,13 +45,11 @@ public class MenusUIScript : MonoBehaviour
         DreivusCustomize.SetActive(false);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+    #endregion
 
-    }
 
-    // MenuVisibility Code
+    #region Canvas/Panel Activation
+
     public void ShowCustomizeMenu()
     {
         Debug.Log("Customize Menu is Visible...");
@@ -96,12 +98,9 @@ public class MenusUIScript : MonoBehaviour
                 Debug.LogError("Invalid car index!");
                 break;
         }
-
-        // Set the flag to true when customization panels are visible
-        isCustomizePanelVisible = true;
     }
 
-        void HideCustomizeMenu()
+    void HideCustomizeMenu()
     {
         Debug.Log("Customize Menu is Hidden...");
         GeneralUI.SetActive(true);
@@ -113,9 +112,6 @@ public class MenusUIScript : MonoBehaviour
         JPXCustomize.SetActive(false);
         JhayluxCustomize.SetActive(false);
         DreivusCustomize.SetActive(false);
-
-        // Set the flag to false when customization panels are hidden
-        isCustomizePanelVisible = false;
     }
 
     void ShowMainMenu()
@@ -131,22 +127,20 @@ public class MenusUIScript : MonoBehaviour
 
     public void ShowStartMenu()
     {
-    Debug.Log("Start Menu is fading in...");
-    GeneralUI.SetActive(true);
-    MainMenuUI.SetActive(false);
-    
-    // Make sure the panel is active but fully transparent at first
-    StartMenuUI.SetActive(true);
-    startMenuCanvasGroup.alpha = 0f;
-    
-    // Fade in the start menu panel
-    startMenuCanvasGroup.DOFade(1f, fadeInDuration)
-        .SetEase(fadeInEase);
-    
-    // Keep other panels hidden
-    StoryModeUI.SetActive(false);
-    SettingsUI.SetActive(false);
-    AboutUI.SetActive(false);
+        Debug.Log("Start Menu is fading in...");
+        GeneralUI.SetActive(true);
+        MainMenuUI.SetActive(false);
+
+        StartMenuUI.SetActive(true);
+        startMenuCanvasGroup.alpha = 0f;
+
+        // Fade in the start menu panel
+        startMenuCanvasGroup.DOFade(1f, fadeInDuration)
+            .SetEase(fadeInEase);
+
+        StoryModeUI.SetActive(false);
+        SettingsUI.SetActive(false);
+        AboutUI.SetActive(false);
     }
 
     void ShowAboutMenu()
@@ -171,8 +165,11 @@ public class MenusUIScript : MonoBehaviour
         AboutUI.SetActive(false);
     }
 
+    #endregion
 
-    // End of MenuVisibility Code
+
+
+    #region Loading Levels
 
     // LEVELS Loading Scenes Code
     public void LoadLevel1()
@@ -220,6 +217,9 @@ public class MenusUIScript : MonoBehaviour
     }
     // End for QUIZ Loading Scenes Code
 
+    #endregion
+
+    #region DoTween Animations
     // Animations Using Dotween
 
     // Main Menu UI Animation
@@ -261,7 +261,6 @@ public class MenusUIScript : MonoBehaviour
         ShowMainMenu();
     }
 
-    
 
 
     IEnumerator DelayedStartMainMenu(float delay)
@@ -287,40 +286,25 @@ public class MenusUIScript : MonoBehaviour
 
     // On Start Menu Button Click
 
-
-
-
-
     // END OF Animations Using Dotweem
+
+    #endregion
+
+
+    #region Additional Methods
 
     // Method to refresh customize menu when car changes
     public void RefreshCustomizeMenu()
     {
         // Check if any customize panel is active
         bool isCustomizeVisible = JPXCustomize.activeSelf || JhayluxCustomize.activeSelf || DreivusCustomize.activeSelf;
-        
+
         // Only refresh if customize menu is currently visible
         if (isCustomizeVisible)
         {
             ShowCustomizeMenu();
         }
     }
-
-    // Toggle customization panels on/off
-    public void ToggleCustomizeMenu()
-    {
-        // Toggle the state
-        isCustomizePanelVisible = !isCustomizePanelVisible;
-        
-        if (isCustomizePanelVisible)
-        {
-            // Show the customize menu if it was hidden
-            ShowCustomizeMenu();
-        }
-        else
-        {
-            // Hide the customize menu if it was visible
-            HideCustomizeMenu();
-        }
-    }
+    
+    #endregion
 }
