@@ -5,24 +5,38 @@ public class CarUIController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private CarController carController;
-    
+
     [Header("Pedals")]
-    [SerializeField] public Slider acceleratorPedal; // Changed to public for access from TouchPedalController
-    [SerializeField] public Slider brakePedal; // Changed to public for access from TouchPedalController
-    
+    [SerializeField] private Slider acceleratorPedal;
+    [SerializeField] private Slider brakePedal;
+
     [Header("UI Elements")]
     [SerializeField] private RectTransform acceleratorPedalPressPoint;
     [SerializeField] private RectTransform brakePedalPressPoint;
     [SerializeField] private float pedalPressDepth = 50f;
-    
+
     [Header("Auto-Return Settings")]
     [SerializeField] private float acceleratorReturnSpeed = 2.0f;
     [SerializeField] private float brakeReturnSpeed = 1.5f;
-    
+
+    [Header("Gear Slider")]
+    [SerializeField] private Slider gearSlider;
+
     // Touch state tracking
     private bool isAcceleratorPressed = false;
     private bool isBrakePressed = false;
-    
+
+    private void Start()
+    {
+        if (gearSlider != null)
+        {
+            gearSlider.wholeNumbers = true;
+            gearSlider.minValue = 0;
+            gearSlider.maxValue = 3;
+            gearSlider.onValueChanged.AddListener(OnGearSliderChanged);
+        }
+    }
+
     private void Update()
     {
         // Handle pedal auto-return when released
@@ -30,12 +44,12 @@ public class CarUIController : MonoBehaviour
         {
             acceleratorPedal.value = Mathf.Max(0, acceleratorPedal.value - acceleratorReturnSpeed * Time.deltaTime);
         }
-        
+
         if (!isBrakePressed && brakePedal.value > 0)
         {
             brakePedal.value = Mathf.Max(0, brakePedal.value - brakeReturnSpeed * Time.deltaTime);
         }
-        
+
         // Animate the pedals based on values
         if (acceleratorPedalPressPoint != null)
         {
@@ -43,7 +57,7 @@ public class CarUIController : MonoBehaviour
             acceleratorPos.y = -pedalPressDepth * acceleratorPedal.value;
             acceleratorPedalPressPoint.localPosition = acceleratorPos;
         }
-        
+
         if (brakePedalPressPoint != null)
         {
             Vector3 brakePos = brakePedalPressPoint.localPosition;
@@ -51,39 +65,68 @@ public class CarUIController : MonoBehaviour
             brakePedalPressPoint.localPosition = brakePos;
         }
     }
-    
+
+    private void LateUpdate()
+    {
+        // Snap the gear slider to the nearest whole number
+        if (gearSlider != null)
+        {
+            gearSlider.value = Mathf.Round(gearSlider.value);
+        }
+    }
+
+    private void OnGearSliderChanged(float value)
+    {
+        int gearIndex = Mathf.RoundToInt(value);
+        switch (gearIndex)
+        {
+            case 0:
+                SetGearPark();
+                break;
+            case 1:
+                SetGearReverse();
+                break;
+            case 2:
+                SetGearNeutral();
+                break;
+            case 3:
+                SetGearDrive();
+                break;
+        }
+    }
+
     // Accelerator pedal methods for UI buttons
     public void OnAcceleratorDown()
     {
         isAcceleratorPressed = true;
     }
-    
+
     public void OnAcceleratorUp()
     {
         isAcceleratorPressed = false;
     }
-    
+
     public void SetAcceleratorValue(float value)
     {
         acceleratorPedal.value = value;
     }
-    
+
     // Brake pedal methods for UI buttons
     public void OnBrakeDown()
     {
         isBrakePressed = true;
     }
-    
+
     public void OnBrakeUp()
     {
         isBrakePressed = false;
     }
-    
+
     public void SetBrakeValue(float value)
     {
         brakePedal.value = value;
     }
-    
+
     // Methods to call on touch events for pedals
     public void OnAcceleratorTouchDelta(float delta)
     {
@@ -92,7 +135,7 @@ public class CarUIController : MonoBehaviour
             acceleratorPedal.value = Mathf.Clamp01(acceleratorPedal.value + delta * 0.01f);
         }
     }
-    
+
     public void OnBrakeTouchDelta(float delta)
     {
         if (isBrakePressed)
@@ -100,23 +143,23 @@ public class CarUIController : MonoBehaviour
             brakePedal.value = Mathf.Clamp01(brakePedal.value + delta * 0.01f);
         }
     }
-    
+
     // Gear control methods to call from UI buttons
     public void SetGearPark()
     {
         carController.SetGearState(CarController.GearState.Park);
     }
-    
+
     public void SetGearReverse()
     {
         carController.SetGearState(CarController.GearState.Reverse);
     }
-    
+
     public void SetGearNeutral()
     {
         carController.SetGearState(CarController.GearState.Neutral);
     }
-    
+
     public void SetGearDrive()
     {
         carController.SetGearState(CarController.GearState.Drive);
