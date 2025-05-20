@@ -261,8 +261,6 @@ public class MenusUIScript : MonoBehaviour
         ShowMainMenu();
     }
 
-
-
     IEnumerator DelayedStartMainMenu(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -305,6 +303,23 @@ public class MenusUIScript : MonoBehaviour
             ShowCustomizeMenu();
         }
     }
+
+    public void ToggleCustomizeMenu()
+{
+    // Check the current active state of any customize panels
+    bool isAnyPanelActive = JPXCustomize.activeSelf || JhayluxCustomize.activeSelf || DreivusCustomize.activeSelf;
+    
+    if (isAnyPanelActive)
+    {
+        // If any panel is active, hide all customize panels
+        HideCustomizeMenu();
+    }
+    else
+    {
+        // If no panel is active, show the appropriate customize panel
+        ShowCustomizeMenu();
+    }
+}
     
     #endregion
 }
