@@ -25,7 +25,7 @@ public class GameManagerSaveAndLoad : MonoBehaviour
     [SerializeField] private TextMeshProUGUI carNameText;
     [SerializeField] private GameObject selectedIndicator; // Optional - an object that shows this car is selected
     
-    private int currentDisplayIndex = 0;
+    public int currentDisplayIndex = 0;
     private GameObject currentCarInstance;
     
     // This is called when the shop screen loads
@@ -63,8 +63,7 @@ public class GameManagerSaveAndLoad : MonoBehaviour
 
         Debug.Log("TESTING: Game reset to default state!");
     }
-    
-    // Next and Previous car buttons
+      // Next and Previous car buttons
     public void NextCar()
     {
         currentDisplayIndex++;
@@ -73,6 +72,13 @@ public class GameManagerSaveAndLoad : MonoBehaviour
 
         DisplayCurrentCar();
         UpdateUI();
+        
+        // Find and refresh the MenusUIScript to update color panels if open
+        MenusUIScript menuUI = FindObjectOfType<MenusUIScript>();
+        if (menuUI != null)
+        {
+            menuUI.RefreshCustomizeMenu();
+        }
     }
     
     public void PreviousCar()
@@ -83,6 +89,13 @@ public class GameManagerSaveAndLoad : MonoBehaviour
             
         DisplayCurrentCar();
         UpdateUI();
+        
+        // Find and refresh the MenusUIScript to update color panels if open
+        MenusUIScript menuUI = FindObjectOfType<MenusUIScript>();
+        if (menuUI != null)
+        {
+            menuUI.RefreshCustomizeMenu();
+        }
     }
     
     // Select the current car (if unlocked)
@@ -217,5 +230,11 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         {
             currentCarInstance = Instantiate(carCatalog[currentDisplayIndex].carPrefab);
         }
+    }
+    
+    // Get the current car index for external access
+    public int GetCurrentCarIndex()
+    {
+        return currentDisplayIndex;
     }
 }

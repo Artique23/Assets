@@ -8,12 +8,18 @@ using DG.Tweening;
 
 public class MenusUIScript : MonoBehaviour
 {
-    [SerializeField] GameObject GeneralUI, MainMenuUI, StartMenuUI, StoryModeUI, SettingsUI, AboutUI;
+    [SerializeField] GameObject GeneralUI, MainMenuUI, StartMenuUI, StoryModeUI, SettingsUI, AboutUI, JPXCustomize, JhayluxCustomize,DreivusCustomize;
 
     // Animations Using Dotween
     [SerializeField] RectTransform MainMenuLowerPanel;
     [SerializeField] float bottomY, baseY;
     [SerializeField] float tweenDuration;
+
+    GameManagerSaveAndLoad gameManager;
+    
+    // Flag to track if customization panels are visible
+    private bool isCustomizePanelVisible = false;
+
 
     [Header("Fade Animations")]
     [SerializeField] private CanvasGroup startMenuCanvasGroup;  // Assign in inspector
@@ -29,6 +35,10 @@ public class MenusUIScript : MonoBehaviour
         StartMenuUI.SetActive(false);
         StoryModeUI.SetActive(false);
         SettingsUI.SetActive(false);
+        AboutUI.SetActive(false);
+        JPXCustomize.SetActive(false);
+        JhayluxCustomize.SetActive(false);
+        DreivusCustomize.SetActive(false);
     }
 
     // Update is called once per frame
@@ -38,6 +48,75 @@ public class MenusUIScript : MonoBehaviour
     }
 
     // MenuVisibility Code
+    public void ShowCustomizeMenu()
+    {
+        Debug.Log("Customize Menu is Visible...");
+        GeneralUI.SetActive(true);
+        MainMenuUI.SetActive(true);
+        StartMenuUI.SetActive(false);
+        StoryModeUI.SetActive(false);
+        SettingsUI.SetActive(false);
+        AboutUI.SetActive(false);
+
+        // Get the current car index from GameManagerSaveAndLoad
+        gameManager = FindObjectOfType<GameManagerSaveAndLoad>();
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManagerSaveAndLoad not found!");
+            return;
+        }
+
+        // Get the current car index using the public method
+        int currentCarIndex = gameManager.GetCurrentCarIndex();
+
+        // Disable all customize panels first
+        JPXCustomize.SetActive(false);
+        JhayluxCustomize.SetActive(false);
+        DreivusCustomize.SetActive(false);
+
+        // Set the active customize panel based on the selected car index
+        switch (currentCarIndex)
+        {
+            case 0:
+                JPXCustomize.SetActive(true);
+                JhayluxCustomize.SetActive(false);
+                DreivusCustomize.SetActive(false);
+                break;
+            case 1:
+                JhayluxCustomize.SetActive(true);
+                JPXCustomize.SetActive(false);
+                DreivusCustomize.SetActive(false);
+                break;
+            case 2:
+                DreivusCustomize.SetActive(true);
+                JhayluxCustomize.SetActive(false);
+                JPXCustomize.SetActive(false);
+                break;
+            default:
+                Debug.LogError("Invalid car index!");
+                break;
+        }
+
+        // Set the flag to true when customization panels are visible
+        isCustomizePanelVisible = true;
+    }
+
+        void HideCustomizeMenu()
+    {
+        Debug.Log("Customize Menu is Hidden...");
+        GeneralUI.SetActive(true);
+        MainMenuUI.SetActive(true);
+        StartMenuUI.SetActive(false);
+        StoryModeUI.SetActive(false);
+        SettingsUI.SetActive(false);
+        AboutUI.SetActive(false);
+        JPXCustomize.SetActive(false);
+        JhayluxCustomize.SetActive(false);
+        DreivusCustomize.SetActive(false);
+
+        // Set the flag to false when customization panels are hidden
+        isCustomizePanelVisible = false;
+    }
 
     void ShowMainMenu()
     {
@@ -213,4 +292,35 @@ public class MenusUIScript : MonoBehaviour
 
 
     // END OF Animations Using Dotweem
+
+    // Method to refresh customize menu when car changes
+    public void RefreshCustomizeMenu()
+    {
+        // Check if any customize panel is active
+        bool isCustomizeVisible = JPXCustomize.activeSelf || JhayluxCustomize.activeSelf || DreivusCustomize.activeSelf;
+        
+        // Only refresh if customize menu is currently visible
+        if (isCustomizeVisible)
+        {
+            ShowCustomizeMenu();
+        }
+    }
+
+    // Toggle customization panels on/off
+    public void ToggleCustomizeMenu()
+    {
+        // Toggle the state
+        isCustomizePanelVisible = !isCustomizePanelVisible;
+        
+        if (isCustomizePanelVisible)
+        {
+            // Show the customize menu if it was hidden
+            ShowCustomizeMenu();
+        }
+        else
+        {
+            // Hide the customize menu if it was visible
+            HideCustomizeMenu();
+        }
+    }
 }
