@@ -35,9 +35,23 @@ public class CarControls : MonoBehaviour
     [Header("Transmission (Reference)")]
     public GearShiftController gearShiftController;
 
+    [Header("Car Power")]
+    public bool carPoweredOn = false; // Default: Off
+
+    [Header("Car cam")]
+    public Camera firstPersonCamera;
+    public Camera thirdPersonCamera;
+
+    private bool isFirstPerson = false;
+
+
+
     // Pedal state
     private float pedalInput = 0f; // 1 = pressed, 0 = released
     private float brakeInput = 0f; // 1 = pressed, 0 = released
+
+    public CarlightController carlightController; // Assign this in the Inspector
+
 
     private void Awake()
     {
@@ -52,11 +66,48 @@ public class CarControls : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        if (firstPersonCamera != null) firstPersonCamera.gameObject.SetActive(isFirstPerson);
+        if (thirdPersonCamera != null) thirdPersonCamera.gameObject.SetActive(!isFirstPerson);
+    }
+
+
+    public void ToggleCarPower()
+    {
+        carPoweredOn = !carPoweredOn;
+        if (carlightController != null)
+        {
+            carlightController.FlashAllLights(0.3f); // Duration in seconds
+            if (!carPoweredOn)
+            {
+                carlightController.ToggleHeadlights(false);
+                carlightController.SetBrakeLights(false);
+                carlightController.ToggleLeftSignal(false);
+                carlightController.ToggleRightSignal(false);
+                carlightController.ToggleHazards(false);
+                carlightController.SetReverseLight(false);
+            }
+        }
+    }
+
+    public void ToggleCameraView()
+    {
+        isFirstPerson = !isFirstPerson;
+
+        if (firstPersonCamera != null) firstPersonCamera.gameObject.SetActive(isFirstPerson);
+        if (thirdPersonCamera != null) thirdPersonCamera.gameObject.SetActive(!isFirstPerson);
+    }
+
     private void Update()
     {
+
+        if (!carPoweredOn)
+            return;
         Movecar();
         CarSteering();
         Applybrake();
+        UpdateReverseLight();
     }
 
     private void Movecar()
@@ -90,6 +141,16 @@ public class CarControls : MonoBehaviour
         rearLeftWheelCollider.motorTorque = presentAcceleration;
         rearRightWheelCollider.motorTorque = presentAcceleration;
     }
+
+    private void UpdateReverseLight()
+    {
+        if (carlightController != null && gearShiftController != null)
+        {
+            bool isReverse = gearShiftController.GetCurrentGear() == GearShiftController.GearState.Reverse;
+            carlightController.SetReverseLight(isReverse);
+        }
+    }
+
 
     private void CarSteering()
     {
@@ -125,8 +186,20 @@ public class CarControls : MonoBehaviour
     // Methods for UI Button Pedals
     public void OnAcceleratorDown() { pedalInput = 1f; }
     public void OnAcceleratorUp() { pedalInput = 0f; }
-    public void OnBrakeDown() { brakeInput = 1f; }
-    public void OnBrakeUp() { brakeInput = 0f; }
+    public void OnBrakeDown()
+    {
+        if (!carPoweredOn) return;
+        brakeInput = 1f;
+        if (carlightController != null)
+            carlightController.SetBrakeLights(true);
+    }
+    public void OnBrakeUp()
+    {
+        if (!carPoweredOn) return;
+        brakeInput = 0f;
+        if (carlightController != null)
+            carlightController.SetBrakeLights(false);
+    }
 
     // Helper to add pointer events to buttons
     private void AddButtonEvents(Button button, UnityEngine.Events.UnityAction onDown, UnityEngine.Events.UnityAction onUp)
