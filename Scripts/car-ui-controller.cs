@@ -6,162 +6,73 @@ public class CarUIController : MonoBehaviour
     [Header("References")]
     [SerializeField] private CarController carController;
 
-    [Header("Pedals")]
-    [SerializeField] private Slider acceleratorPedal;
-    [SerializeField] private Slider brakePedal;
+    [Header("Pedals (Optional Buttons, for Button UI)")]
+    [SerializeField] private Button acceleratorButton;
+    [SerializeField] private Button brakeButton;
 
-    [Header("UI Elements")]
-    [SerializeField] private RectTransform acceleratorPedalPressPoint;
-    [SerializeField] private RectTransform brakePedalPressPoint;
-    [SerializeField] private float pedalPressDepth = 50f;
+    [Header("Gear Shift")]
+    [SerializeField] private Slider gearShiftSlider;
 
-    [Header("Auto-Return Settings")]
-    [SerializeField] private float acceleratorReturnSpeed = 2.0f;
-    [SerializeField] private float brakeReturnSpeed = 1.5f;
-
-    [Header("Gear Slider")]
-    [SerializeField] private Slider gearSlider;
-
-    // Touch state tracking
-    private bool isAcceleratorPressed = false;
-    private bool isBrakePressed = false;
+    private float acceleratorValue = 0f;
+    private float brakeValue = 0f;
 
     private void Start()
     {
-        if (gearSlider != null)
+        if (gearShiftSlider != null)
+            gearShiftSlider.onValueChanged.AddListener(OnGearSliderChanged);
+
+        // Button hooks are optional: only if using UI Buttons, set via inspector or code!
+        if (acceleratorButton != null)
         {
-            gearSlider.wholeNumbers = true;
-            gearSlider.minValue = 0;
-            gearSlider.maxValue = 3;
-            gearSlider.onValueChanged.AddListener(OnGearSliderChanged);
+            // Setup buttons via EventTrigger or add listeners in inspector.
+        }
+        if (brakeButton != null)
+        {
+            // Setup buttons via EventTrigger or add listeners in inspector.
         }
     }
 
-    private void Update()
+    // ----- PEDAL INTERFACE -----
+    // These work for BUTTONS or Touch
+    public void OnAcceleratorDown() { acceleratorValue = 1f; }
+    public void OnAcceleratorUp() { acceleratorValue = 0f; }
+    public void OnBrakeDown() { brakeValue = 1f; }
+    public void OnBrakeUp() { brakeValue = 0f; }
+
+    // These allow analog/touch pressure
+    public void SetAcceleratorValue(float value) { acceleratorValue = Mathf.Clamp01(value); }
+    public void SetBrakeValue(float value) { brakeValue = Mathf.Clamp01(value); }
+
+    // Touch delta events from TouchPedalController
+    public void OnAcceleratorTouchDelta(float delta)
     {
-        // Handle pedal auto-return when released
-        if (!isAcceleratorPressed && acceleratorPedal.value > 0)
-        {
-            acceleratorPedal.value = Mathf.Max(0, acceleratorPedal.value - acceleratorReturnSpeed * Time.deltaTime);
-        }
-
-        if (!isBrakePressed && brakePedal.value > 0)
-        {
-            brakePedal.value = Mathf.Max(0, brakePedal.value - brakeReturnSpeed * Time.deltaTime);
-        }
-
-        // Animate the pedals based on values
-        if (acceleratorPedalPressPoint != null)
-        {
-            Vector3 acceleratorPos = acceleratorPedalPressPoint.localPosition;
-            acceleratorPos.y = -pedalPressDepth * acceleratorPedal.value;
-            acceleratorPedalPressPoint.localPosition = acceleratorPos;
-        }
-
-        if (brakePedalPressPoint != null)
-        {
-            Vector3 brakePos = brakePedalPressPoint.localPosition;
-            brakePos.y = -pedalPressDepth * brakePedal.value;
-            brakePedalPressPoint.localPosition = brakePos;
-        }
+        SetAcceleratorValue(acceleratorValue + delta * 0.01f);
     }
-
-    private void LateUpdate()
+    public void OnBrakeTouchDelta(float delta)
     {
-        // Snap the gear slider to the nearest whole number
-        if (gearSlider != null)
-        {
-            gearSlider.value = Mathf.Round(gearSlider.value);
-        }
+        SetBrakeValue(brakeValue + delta * 0.01f);
     }
 
+    // --- CarController reads these ---
+    public float GetAcceleratorValue() => acceleratorValue;
+    public float GetBrakeValue() => brakeValue;
+
+    // ----- GEAR SHIFT -----
     private void OnGearSliderChanged(float value)
     {
         int gearIndex = Mathf.RoundToInt(value);
         switch (gearIndex)
         {
-            case 0:
-                SetGearPark();
-                break;
-            case 1:
-                SetGearReverse();
-                break;
-            case 2:
-                SetGearNeutral();
-                break;
-            case 3:
-                SetGearDrive();
-                break;
+            case 0: carController.SetGearState(CarController.GearState.Park); break;
+            case 1: carController.SetGearState(CarController.GearState.Reverse); break;
+            case 2: carController.SetGearState(CarController.GearState.Neutral); break;
+            case 3: carController.SetGearState(CarController.GearState.Drive); break;
         }
     }
 
-    // Accelerator pedal methods for UI buttons
-    public void OnAcceleratorDown()
-    {
-        isAcceleratorPressed = true;
-    }
-
-    public void OnAcceleratorUp()
-    {
-        isAcceleratorPressed = false;
-    }
-
-    public void SetAcceleratorValue(float value)
-    {
-        acceleratorPedal.value = value;
-    }
-
-    // Brake pedal methods for UI buttons
-    public void OnBrakeDown()
-    {
-        isBrakePressed = true;
-    }
-
-    public void OnBrakeUp()
-    {
-        isBrakePressed = false;
-    }
-
-    public void SetBrakeValue(float value)
-    {
-        brakePedal.value = value;
-    }
-
-    // Methods to call on touch events for pedals
-    public void OnAcceleratorTouchDelta(float delta)
-    {
-        if (isAcceleratorPressed)
-        {
-            acceleratorPedal.value = Mathf.Clamp01(acceleratorPedal.value + delta * 0.01f);
-        }
-    }
-
-    public void OnBrakeTouchDelta(float delta)
-    {
-        if (isBrakePressed)
-        {
-            brakePedal.value = Mathf.Clamp01(brakePedal.value + delta * 0.01f);
-        }
-    }
-
-    // Gear control methods to call from UI buttons
-    public void SetGearPark()
-    {
-        carController.SetGearState(CarController.GearState.Park);
-    }
-
-    public void SetGearReverse()
-    {
-        carController.SetGearState(CarController.GearState.Reverse);
-    }
-
-    public void SetGearNeutral()
-    {
-        carController.SetGearState(CarController.GearState.Neutral);
-    }
-
-    public void SetGearDrive()
-    {
-        carController.SetGearState(CarController.GearState.Drive);
-    }
+    // --- For keyboard testing (optional) ---
+    public void SetGearPark()    { carController.SetGearState(CarController.GearState.Park); }
+    public void SetGearReverse() { carController.SetGearState(CarController.GearState.Reverse); }
+    public void SetGearNeutral() { carController.SetGearState(CarController.GearState.Neutral); }
+    public void SetGearDrive()   { carController.SetGearState(CarController.GearState.Drive); }
 }
