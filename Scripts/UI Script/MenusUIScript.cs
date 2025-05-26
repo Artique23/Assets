@@ -28,7 +28,21 @@ public class MenusUIScript : MonoBehaviour
     [SerializeField] private Ease fadeInEase = Ease.OutQuad;
     [SerializeField] private Ease fadeOutEase = Ease.InQuad;
 
+    [Header("Quiz Mode UI")]
+    [SerializeField] private GameObject quizModePanel;
+    [SerializeField] private CanvasGroup quizModeCanvasGroup;  // Add this line
+    [SerializeField] private GameObject easyPanel, averagePanel, difficultPanel;
+    [SerializeField] private Button easyButton, averageButton, difficultButton;
     #endregion
+
+    [Header("Difficulty Button Animation")]
+    [SerializeField] private float buttonScaleDuration = 0.3f;
+    [SerializeField] private Vector3 selectedButtonScale = new Vector3(1.15f, 1.15f, 1.15f);
+    [SerializeField] private Vector3 normalButtonScale = new Vector3(0.9f, 0.9f, 0.9f);
+    [SerializeField] private Ease buttonScaleEase = Ease.OutBack;
+    public int currentSelectedDifficulty = 0; // 0 = Easy, 1 = Average, 2 = Difficult
+
+
     // Start is called before the first frame update
 
     #region OnStart
@@ -142,7 +156,6 @@ public class MenusUIScript : MonoBehaviour
         SettingsUI.SetActive(false);
         AboutUI.SetActive(false);
     }
-
     void ShowAboutMenu()
     {
         Debug.Log("Main Menu is Visible...");
@@ -165,59 +178,51 @@ public class MenusUIScript : MonoBehaviour
         AboutUI.SetActive(false);
     }
 
-    #endregion
+    // Show the Quiz Mode panel with fade-in animation
+    public void ShowQuizModePanel()
+    {
+        Debug.Log("Quiz Mode Panel is fading in...");
+        GeneralUI.SetActive(true);
+        MainMenuUI.SetActive(false);
+        StartMenuUI.SetActive(false);
+        StoryModeUI.SetActive(false);
+        SettingsUI.SetActive(false);
+        AboutUI.SetActive(false);
 
+        // Activate quiz mode panel but make it transparent
+        quizModePanel.SetActive(true);
+        quizModeCanvasGroup.alpha = 0f;
 
+        // Fade in the quiz mode panel
+        quizModeCanvasGroup.DOFade(1f, fadeInDuration)
+            .SetEase(fadeInEase);
 
-    #region Loading Levels
+        // By default, show the easy panel
+        easyPanel.SetActive(true);
+        averagePanel.SetActive(false);
+        difficultPanel.SetActive(false);
+        
+        // Add this line to set initial button scales
+        AnimateButtonSelection(0);
+        currentSelectedDifficulty = 0; // Set default difficulty to Easy
+    }
 
-    // LEVELS Loading Scenes Code
-    public void LoadLevel1()
+    // Hide the Quiz Mode panel with fade-out animation
+    public void HideQuizModePanel()
     {
-        Debug.Log("Loaded Level 1...");
-        SceneManager.LoadScene("Level1Scene");
-    }
-    public void LoadLevel2()
-    {
-        Debug.Log("Loaded Level 2...");
-        SceneManager.LoadScene("Level2Scene");
-    }
-    public void LoadLevel3()
-    {
-        Debug.Log("Loaded Level 3...");
-        SceneManager.LoadScene("Level3Scene");
-    }
-    public void LoadLevel4()
-    {
-        Debug.Log("Loaded Level 4...");
-        SceneManager.LoadScene("Level4Scene");
-    }
-    public void LoadLevel5()
-    {
-        Debug.Log("Loaded Level 5...");
-        SceneManager.LoadScene("Level5Scene");
-    }
-    // End for LEVELS Loading Scenes Code
+        Debug.Log("Quiz Mode Panel is fading out...");
 
-    // QUIZ Loading Scenes Code
-    public void LoadMCQEasy()
-    {
-        Debug.Log("Loaded MCQEasy...");
-        SceneManager.LoadScene("1QuizEasy");
+        // Fade out
+        quizModeCanvasGroup.DOFade(0f, fadeOutDuration)
+            .SetEase(fadeOutEase)
+            .OnComplete(() => {
+                quizModePanel.SetActive(false);
+                MainMenuLowerPanelIntroFromStart();
+            });
     }
-    public void LoadMCQAverage()
-    {
-        Debug.Log("Loaded MCQAverage...");
-        SceneManager.LoadScene("2QuizAverage");
-    }
-    public void LoadMCQDifficult()
-    {
-        Debug.Log("Loaded MCQAverage...");
-        SceneManager.LoadScene("3QuizDifficult");
-    }
-    // End for QUIZ Loading Scenes Code
 
     #endregion
+
 
     #region DoTween Animations
     // Animations Using Dotween
@@ -280,6 +285,39 @@ public class MenusUIScript : MonoBehaviour
         ShowSettingsMenu();
     }
 
+        // Method to transition from Start Menu to Quiz Mode
+    public void TransitionToQuizMode()
+    {
+        Debug.Log("Transitioning to Quiz Mode...");
+        
+        // Prepare the quiz panel before starting animations
+        quizModePanel.SetActive(true);
+        quizModeCanvasGroup.alpha = 0f;
+        
+        // Setup default panels
+        easyPanel.SetActive(true);
+        averagePanel.SetActive(false);
+        difficultPanel.SetActive(false);
+        
+        // Create a simultaneous animation sequence
+        DOTween.Sequence()
+            // Fade out start menu
+            .Append(startMenuCanvasGroup.DOFade(0f, fadeOutDuration).SetEase(fadeOutEase))
+            // Immediately start fading in the quiz panel (with slight delay for visual appeal)
+            .Insert(fadeOutDuration * 0.5f, quizModeCanvasGroup.DOFade(1f, fadeInDuration).SetEase(fadeInEase))
+            // When complete, ensure start menu is fully deactivated
+            .OnComplete(() => {
+                StartMenuUI.SetActive(false);
+                // No need to call ShowQuizModePanel() since we're doing it directly here
+            });
+        
+        // Update UI state
+        GeneralUI.SetActive(true);
+        MainMenuUI.SetActive(false);
+        SettingsUI.SetActive(false);
+        AboutUI.SetActive(false);
+    }
+
     // END Main Menu UI Animation
 
     // On Start Menu Button Click
@@ -290,6 +328,88 @@ public class MenusUIScript : MonoBehaviour
 
 
     #region Additional Methods
+    
+    // Add this to your Additional Methods region
+    public void BeginQuiz()
+    {
+        Debug.Log("Beginning quiz with difficulty: " + currentSelectedDifficulty);
+        
+        // Find the LevelLoader
+        LevelLoader levelLoader = FindObjectOfType<LevelLoader>();
+        
+        if (levelLoader != null)
+        {
+            // Fade out the quiz panel first
+            quizModeCanvasGroup.DOFade(0f, fadeOutDuration)
+                .SetEase(fadeOutEase)
+                .OnComplete(() => {
+                    // Then load the selected quiz
+                    levelLoader.LoadSelectedQuiz();
+                });
+        }
+        else
+        {
+            Debug.LogError("LevelLoader not found!");
+        }
+    }
+
+    // Enhanced panel switchers with button animations
+    public void ShowEasyPanel()
+    {
+        // Switch panels
+        easyPanel.SetActive(true);
+        averagePanel.SetActive(false);
+        difficultPanel.SetActive(false);
+
+        // Animate buttons
+        AnimateButtonSelection(0);
+
+        // Store current difficulty
+        currentSelectedDifficulty = 0;
+    }
+
+    public void ShowAveragePanel()
+    {
+        // Switch panels
+        easyPanel.SetActive(false);
+        averagePanel.SetActive(true);
+        difficultPanel.SetActive(false);
+        
+        // Animate buttons
+        AnimateButtonSelection(1);
+        
+        // Store current difficulty
+        currentSelectedDifficulty = 1;
+    }
+
+    public void ShowDifficultPanel()
+    {
+        // Switch panels
+        easyPanel.SetActive(false);
+        averagePanel.SetActive(false);
+        difficultPanel.SetActive(true);
+        
+        // Animate buttons
+        AnimateButtonSelection(2);
+        
+        // Store current difficulty
+        currentSelectedDifficulty = 2;
+    }
+
+// Button animation helper
+private void AnimateButtonSelection(int selectedIndex)
+{
+    // Scale all buttons
+    if (easyButton != null)
+        easyButton.transform.DOScale(selectedIndex == 0 ? selectedButtonScale : normalButtonScale, buttonScaleDuration).SetEase(buttonScaleEase);
+        
+    if (averageButton != null)
+        averageButton.transform.DOScale(selectedIndex == 1 ? selectedButtonScale : normalButtonScale, buttonScaleDuration).SetEase(buttonScaleEase);
+        
+    if (difficultButton != null)
+        difficultButton.transform.DOScale(selectedIndex == 2 ? selectedButtonScale : normalButtonScale, buttonScaleDuration).SetEase(buttonScaleEase);
+}
+    
 
     // Method to refresh customize menu when car changes
     public void RefreshCustomizeMenu()
