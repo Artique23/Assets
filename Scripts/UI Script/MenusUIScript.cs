@@ -217,7 +217,7 @@ public class MenusUIScript : MonoBehaviour
             .SetEase(fadeOutEase)
             .OnComplete(() => {
                 quizModePanel.SetActive(false);
-                MainMenuLowerPanelIntroFromStart();
+                ShowStartMenu();
             });
     }
 
