@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class LevelLoader : MonoBehaviour
 {
     public Animator transitionFade;
-    public float transitionTime = 1f;
+    public float transitionTime = 1.5f;
 
     MenusUIScript menusUIScript;
 
@@ -98,10 +98,8 @@ public class LevelLoader : MonoBehaviour
     {
         // Play the transition animation
         transitionFade.SetTrigger("Start");
-
         // Wait for the animation to finish
         yield return new WaitForSeconds(transitionTime);
-
         // Load the scene
         SceneManager.LoadScene(sceneName);
     }

@@ -233,7 +233,15 @@ public class MenusUIScript : MonoBehaviour
     public void MainMenuLowerPanelOutro4Start()
     {
         MainMenuLowerPanel.DOAnchorPosY(bottomY, tweenDuration);
-        StartCoroutine(DelayedStartMainMenu(0.4f));
+        StartCoroutine(DelayedStartMainMenu(0.5f));  // Changed to DelayedStartMainMenu
+        ShowStartMenu();
+    }
+
+    // Add this coroutine if it doesn't exist
+    IEnumerator DelayedStartMainMenu(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
     }
 
     public void MainMenuLowerPanelOutro4About()
@@ -264,12 +272,6 @@ public class MenusUIScript : MonoBehaviour
     {
         MainMenuLowerPanel.DOAnchorPosY(baseY, tweenDuration);
         ShowMainMenu();
-    }
-
-    IEnumerator DelayedStartMainMenu(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        ShowStartMenu();
     }
     // END
 
