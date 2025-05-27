@@ -42,13 +42,13 @@ public class Stage1TutorialManager : MonoBehaviour
             btn.SetActive(false);
     }
 
-    void ShowWade(string text)
+    public void ShowWade(string text)
     {
         wadePopupPanel.SetActive(true);
         wadeText.text = text;
     }
 
-    void HideWade()
+    public void HideWade()
     {
         wadePopupPanel.SetActive(false);
     }
