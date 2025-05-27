@@ -98,10 +98,8 @@ public class LevelLoader : MonoBehaviour
     {
         // Play the transition animation
         transitionFade.SetTrigger("Start");
-
         // Wait for the animation to finish
         yield return new WaitForSeconds(transitionTime);
-
         // Load the scene
         SceneManager.LoadScene(sceneName);
     }
