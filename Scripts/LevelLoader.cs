@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class LevelLoader : MonoBehaviour
 {
     public Animator transitionFade;
-    public float transitionTime = 1f;
+    public float transitionTime = 1.5f;
 
     MenusUIScript menusUIScript;
 
