@@ -13,6 +13,10 @@ public class Stage1TutorialManager : MonoBehaviour
     public Image steeringWheelImage;
     public GameObject[] allOtherUIButtons;
 
+    [Header("Gear Shift UI (Slider Setup)")]
+    public Slider gearShiftSlider;             // Assign your gear shift slider here
+    public Image gearShiftImage;               // Assign slider's background or handle image here (for highlighting)
+
     [Header("Wade Dialogue UI")]
     public GameObject wadePopupPanel;
     public TMP_Text wadeText;
@@ -30,6 +34,7 @@ public class Stage1TutorialManager : MonoBehaviour
         // Start the car powered on for the tutorial
         carControls.carPoweredOn = true;
         HideAllControls();
+
         StartCoroutine(RunTutorialSequence());
     }
 
@@ -38,6 +43,8 @@ public class Stage1TutorialManager : MonoBehaviour
         if (acceleratorButton != null) acceleratorButton.gameObject.SetActive(false);
         if (brakeButton != null) brakeButton.gameObject.SetActive(false);
         if (steeringWheelImage != null) steeringWheelImage.gameObject.SetActive(false);
+        if (gearShiftImage != null) gearShiftImage.gameObject.SetActive(false);
+        if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(false);
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(false);
     }
@@ -95,7 +102,28 @@ public class Stage1TutorialManager : MonoBehaviour
 
     IEnumerator RunTutorialSequence()
     {
-        // STEP 1: Acceleration
+        // ========== STEP 0: GEAR SHIFT TUTORIAL ==========
+        HideAllControls();
+        if (gearShiftImage != null) gearShiftImage.gameObject.SetActive(true);
+        if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(true);
+
+        HighlightImage(gearShiftImage);
+        ShowWade(
+            "<b>Gear Shift Tutorial</b><br>" +
+            "This is your gear shift:<br>" +
+            "<b>P</b> = Park (top)<br>" +
+            "<b>R</b> = Reverse<br>" +
+            "<b>N</b> = Neutral<br>" +
+            "<b>D</b> = Drive (bottom)<br>" +
+            "<br>Slide to <b>D</b> (bottom) to start driving!"
+        );
+
+        // Wait for player to move slider to Drive (value == 3)
+        yield return new WaitUntil(() => gearShiftSlider != null && Mathf.Approximately(gearShiftSlider.value, 3));
+        UnhighlightImage(gearShiftImage);
+        HideWade();
+
+        // ========== STEP 1: ACCELERATION ==========
         carStartPos = carControls.transform.position;
         HideAllControls();
         if (acceleratorButton != null) acceleratorButton.gameObject.SetActive(true);
@@ -108,7 +136,7 @@ public class Stage1TutorialManager : MonoBehaviour
         yield return new WaitUntil(() => Vector3.Distance(carControls.transform.position, carStartPos) > moveDistanceForTutorial);
         UnhighlightButton(acceleratorButton);
 
-        // STEP 2: Brake
+        // ========== STEP 2: BRAKE ==========
         ShowWade("Good job! Now <b>press the brake</b> to stop.");
         if (brakeButton != null) brakeButton.gameObject.SetActive(true);
         HighlightButton(brakeButton);
@@ -123,14 +151,14 @@ public class Stage1TutorialManager : MonoBehaviour
         yield return new WaitUntil(() => brakingComplete);
         UnhighlightButton(brakeButton);
 
-        // STEP 3: Freely accelerate & brake
+        // ========== STEP 3: FREELY ACCELERATE & BRAKE ==========
         ShowWade("Awesome! Now you can <b>freely accelerate and brake.</b>");
         if (acceleratorButton != null) acceleratorButton.gameObject.SetActive(true);
         if (brakeButton != null) brakeButton.gameObject.SetActive(true);
         yield return new WaitForSeconds(2.0f);
         HideWade();
 
-        // STEP 4: Wait for turn point trigger (use a trigger/collider in your level)
+        // ========== STEP 4: TURNING ==========
         ShowWade("Approaching a turn! <b>Tap the steering wheel</b> when ready.");
         if (steeringWheelImage != null)
         {
@@ -153,10 +181,12 @@ public class Stage1TutorialManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         HideWade();
 
-        // STEP 5: Tutorial ends, enable all controls
+        // ========== STEP 5: END TUTORIAL ==========
         if (acceleratorButton != null) acceleratorButton.gameObject.SetActive(true);
         if (brakeButton != null) brakeButton.gameObject.SetActive(true);
         if (steeringWheelImage != null) steeringWheelImage.gameObject.SetActive(true);
+        if (gearShiftImage != null) gearShiftImage.gameObject.SetActive(true);
+        if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(true);
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(true);
         // (Tutorial is complete; continue with your stage/advanced scenarios here!)
