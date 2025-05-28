@@ -29,12 +29,19 @@ public class Stage1TutorialManager : MonoBehaviour
     private bool brakingComplete = false;
     private bool turningComplete = false;
 
+    // NEW: Gear tutorial tracking
+    private int lastGearIndex = -1;
+    private readonly string[] gearHints = {
+        "<b>P</b> = Park (vehicle won't move)",
+        "<b>R</b> = Reverse (move backward)",
+        "<b>N</b> = Neutral (free wheel, no drive)",
+        "<b>D</b> = Drive (move forward)"
+    };
+
     void Start()
     {
-        // Start the car powered on for the tutorial
         carControls.carPoweredOn = true;
         HideAllControls();
-
         StartCoroutine(RunTutorialSequence());
     }
 
@@ -100,26 +107,45 @@ public class Stage1TutorialManager : MonoBehaviour
         if (trigger) trigger.triggers.Clear();
     }
 
+    // ===== GEAR TUTORIAL: Event Listener & Hint =====
+    private void OnGearSliderValueChanged(float value)
+    {
+        int gearIndex = Mathf.RoundToInt(value);
+        if (gearIndex != lastGearIndex)
+        {
+            ShowGearHint(gearIndex);
+            lastGearIndex = gearIndex;
+        }
+    }
+
+    private void ShowGearHint(int gearIndex)
+    {
+        gearIndex = Mathf.Clamp(gearIndex, 0, gearHints.Length - 1);
+        ShowWade(gearHints[gearIndex]);
+    }
+
     IEnumerator RunTutorialSequence()
     {
-        // ========== STEP 0: GEAR SHIFT TUTORIAL ==========
+        // ========== STEP 0: INTERACTIVE GEAR SHIFT TUTORIAL ==========
         HideAllControls();
         if (gearShiftImage != null) gearShiftImage.gameObject.SetActive(true);
         if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(true);
 
         HighlightImage(gearShiftImage);
-        ShowWade(
-            "<b>Gear Shift Tutorial</b><br>" +
-            "This is your gear shift:<br>" +
-            "<b>P</b> = Park (top)<br>" +
-            "<b>R</b> = Reverse<br>" +
-            "<b>N</b> = Neutral<br>" +
-            "<b>D</b> = Drive (bottom)<br>" +
-            "<br>Slide to <b>D</b> (bottom) to start driving!"
-        );
 
-        // Wait for player to move slider to Drive (value == 3)
+        // Initialize Wade popup for the current gear
+        lastGearIndex = Mathf.RoundToInt(gearShiftSlider.value);
+        ShowGearHint(lastGearIndex);
+
+        // Listen for slider changes to show the hint for each gear
+        gearShiftSlider.onValueChanged.AddListener(OnGearSliderValueChanged);
+
+        // Wait until player moves to D (3)
         yield return new WaitUntil(() => gearShiftSlider != null && Mathf.Approximately(gearShiftSlider.value, 3));
+
+        // Remove listener after tutorial step
+        gearShiftSlider.onValueChanged.RemoveListener(OnGearSliderValueChanged);
+
         UnhighlightImage(gearShiftImage);
         HideWade();
 
