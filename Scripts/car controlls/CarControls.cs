@@ -42,6 +42,8 @@ public class CarControls : MonoBehaviour
     public Camera firstPersonCamera;
     public Camera thirdPersonCamera;
 
+    public bool leftSignalOn = false;
+
     private bool isFirstPerson = false;
 
 
