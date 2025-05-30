@@ -42,16 +42,18 @@ public class CarControls : MonoBehaviour
     public Camera firstPersonCamera;
     public Camera thirdPersonCamera;
 
+    [Header("Car Lights Controller")]
+    public CarlightController carlightController; // Assign this in the Inspector
+
+    // Turn signal state
+    public bool leftSignalOn { get; private set; } = false;
+    public bool rightSignalOn { get; private set; } = false;
+
     private bool isFirstPerson = false;
-
-
 
     // Pedal state
     private float pedalInput = 0f; // 1 = pressed, 0 = released
     private float brakeInput = 0f; // 1 = pressed, 0 = released
-
-    public CarlightController carlightController; // Assign this in the Inspector
-
 
     private void Awake()
     {
@@ -71,7 +73,6 @@ public class CarControls : MonoBehaviour
         if (firstPersonCamera != null) firstPersonCamera.gameObject.SetActive(isFirstPerson);
         if (thirdPersonCamera != null) thirdPersonCamera.gameObject.SetActive(!isFirstPerson);
     }
-
 
     public void ToggleCarPower()
     {
@@ -94,14 +95,12 @@ public class CarControls : MonoBehaviour
     public void ToggleCameraView()
     {
         isFirstPerson = !isFirstPerson;
-
         if (firstPersonCamera != null) firstPersonCamera.gameObject.SetActive(isFirstPerson);
         if (thirdPersonCamera != null) thirdPersonCamera.gameObject.SetActive(!isFirstPerson);
     }
 
     private void Update()
     {
-
         if (!carPoweredOn)
             return;
         Movecar();
@@ -113,7 +112,6 @@ public class CarControls : MonoBehaviour
     private void Movecar()
     {
         float targetAcceleration = 0f;
-
         GearShiftController.GearState currentGear = GearShiftController.GearState.Park;
         if (gearShiftController != null)
             currentGear = gearShiftController.GetCurrentGear();
@@ -150,7 +148,6 @@ public class CarControls : MonoBehaviour
             carlightController.SetReverseLight(isReverse);
         }
     }
-
 
     private void CarSteering()
     {
@@ -201,6 +198,82 @@ public class CarControls : MonoBehaviour
             carlightController.SetBrakeLights(false);
     }
 
+    // ----- TURN SIGNAL METHODS -----
+
+    /// <summary>
+    /// Turn ON the left signal and turn OFF the right signal.
+    /// </summary>
+    public void SignalLeft()
+    {
+        leftSignalOn = true;
+        rightSignalOn = false;
+        if (carlightController != null)
+        {
+            carlightController.ToggleLeftSignal(true);
+            carlightController.ToggleRightSignal(false);
+        }
+    }
+
+    /// <summary>
+    /// Turn ON the right signal and turn OFF the left signal.
+    /// </summary>
+    public void SignalRight()
+    {
+        leftSignalOn = false;
+        rightSignalOn = true;
+        if (carlightController != null)
+        {
+            carlightController.ToggleLeftSignal(false);
+            carlightController.ToggleRightSignal(true);
+        }
+    }
+
+    /// <summary>
+    /// Turn OFF both signals.
+    /// </summary>
+    public void SignalOff()
+    {
+        leftSignalOn = false;
+        rightSignalOn = false;
+        if (carlightController != null)
+        {
+            carlightController.ToggleLeftSignal(false);
+            carlightController.ToggleRightSignal(false);
+        }
+    }
+
+    /// <summary>
+    /// Toggle left signal (for toggle button UI).
+    /// </summary>
+    public void ToggleLeftSignal()
+    {
+        if (!leftSignalOn)
+        {
+            SignalLeft();
+        }
+        else
+        {
+            SignalOff();
+        }
+    }
+
+    /// <summary>
+    /// Toggle right signal (for toggle button UI).
+    /// </summary>
+    public void ToggleRightSignal()
+    {
+        if (!rightSignalOn)
+        {
+            SignalRight();
+        }
+        else
+        {
+            SignalOff();
+        }
+    }
+
+    // --------------------------------------------------
+
     // Helper to add pointer events to buttons
     private void AddButtonEvents(Button button, UnityEngine.Events.UnityAction onDown, UnityEngine.Events.UnityAction onUp)
     {
@@ -219,5 +292,14 @@ public class CarControls : MonoBehaviour
         entryUp.eventID = EventTriggerType.PointerUp;
         entryUp.callback.AddListener((eventData) => { onUp(); });
         trigger.triggers.Add(entryUp);
+    }
+
+    /// <summary>
+    /// Returns the car's current speed (in Unity units/sec).
+    /// </summary>
+    public float GetCurrentSpeed()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        return rb != null ? rb.velocity.magnitude : 0f;
     }
 }
