@@ -40,36 +40,34 @@ public class LeftTurnYieldScenario : MonoBehaviour
             bool waitedLongEnough = playerWaitTime > waitTimeThreshold;
             bool danger = IsAICarApproaching();
 
-            Debug.Log("EXIT: carlightController=" + (carlightController != null ? carlightController.gameObject.name : "NULL")
-                + ", leftSignalOn=" + (carlightController != null ? carlightController.LeftSignalIsOn().ToString() : "N/A")
-                + ", signalWasOnInZone=" + signalWasOnInZone);
-
             string msg = "";
 
             if (!didSignal && danger)
             {
                 msg = "You must use your LEFT turn signal and yield to oncoming traffic! -" + Mathf.Abs(penaltyPoints) + " points";
-                playerScore += penaltyPoints;
+                StageScoreManager.Instance.AddPoints(penaltyPoints); // UPDATED
             }
             else if (!didSignal)
             {
                 msg = "Don't forget your LEFT turn signal when turning left. -" + Mathf.Abs(penaltyPoints) + " points";
-                playerScore += penaltyPoints;
+                StageScoreManager.Instance.AddPoints(penaltyPoints); // UPDATED
             }
             else if (danger)
             {
                 msg = "Watch out! Yield to oncoming traffic before turning left.";
+                // No reward or penalty
             }
             else if (waitedLongEnough)
             {
                 msg = "Excellent! You signaled and waited for a safe gap before turning. +" + rewardPoints + " points!";
-                playerScore += rewardPoints;
+                StageScoreManager.Instance.AddPoints(rewardPoints); // UPDATED
             }
             else
             {
                 msg = "Good signal! But always double-check for traffic before turning. +" + rewardPoints + " points!";
-                playerScore += rewardPoints;
+                StageScoreManager.Instance.AddPoints(rewardPoints); // UPDATED
             }
+
 
             if (tutorialManager != null)
                 tutorialManager.ShowWade(msg);

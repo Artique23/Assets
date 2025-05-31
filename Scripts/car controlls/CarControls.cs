@@ -302,4 +302,19 @@ public class CarControls : MonoBehaviour
         Rigidbody rb = GetComponent<Rigidbody>();
         return rb != null ? rb.velocity.magnitude : 0f;
     }
+    void OnCollisionEnter(Collision collision)
+{
+    if (collision.gameObject.CompareTag("AutonomousVehicle"))
+    {
+        // Subtract 50 points when player hits an AI car
+        StageScoreManager.Instance.AddPoints(-50);
+
+        // Optional: Show a message if you have a tutorial manager reference
+        // if (tutorialManager != null)
+        //     tutorialManager.ShowWade("Don't crash into other cars! -50 points");
+
+        Debug.Log("Player hit an AI car! -50 points");
+    }
+}
+
 }

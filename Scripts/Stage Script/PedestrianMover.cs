@@ -51,6 +51,7 @@ public class PedestrianMover : MonoBehaviour
             {
                 // Show dialog until despawn
                 tutorialManager.ShowWade("You hit a pedestrian! Slow down and always yield to people crossing. -100 points");
+                StageScoreManager.Instance.AddPoints(-100);
                 StartCoroutine(HideWadeAndDespawn(1f));
             }
             else
@@ -68,7 +69,8 @@ public class PedestrianMover : MonoBehaviour
             // Use correct dialog depending on why isDone
             if (moving == false && Vector3.Distance(transform.position, target) < 0.1f)
             {
-                tutorialManager.ShowWade("Well done! You let the pedestrian cross safely.");
+                tutorialManager.ShowWade("Well done! You let the pedestrian cross safely. +100 points");
+                StageScoreManager.Instance.AddPoints(100);
             }
             yield return new WaitForSeconds(waitTime);
             tutorialManager.HideWade();

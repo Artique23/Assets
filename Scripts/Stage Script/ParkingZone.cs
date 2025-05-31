@@ -84,7 +84,8 @@ public class ParkingZone : MonoBehaviour
                 {
                     // Success!
                     if (tutorialManager != null)
-                        tutorialManager.ShowWade("Congratulations! You parked successfully!");
+                    StageScoreManager.Instance.AddPoints(100);
+                    tutorialManager.ShowWade("Congratulations! You parked successfully!\nTotal Points: " + StageScoreManager.Instance.GetPoints());// Add points for successful parking
                     if (highlightVisual != null)
                         highlightVisual.SetActive(false);
                     enabled = false;
