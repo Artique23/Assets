@@ -161,6 +161,18 @@ public class CarlightController : MonoBehaviour
         }
     }
 
+    // Add these public getters to expose the signal states:
+    public bool LeftSignalIsOn()
+    {
+        return leftSignalOn;
+    }
+
+    public bool RightSignalIsOn()
+    {
+        return rightSignalOn;
+    }
+
+
     public void ToggleRightSignal(bool on)
     {
         if (on)
