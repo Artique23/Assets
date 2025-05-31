@@ -93,7 +93,7 @@ public class TrafficLightZone : MonoBehaviour
             tutorialManager.ShowWade("Good job! You waited for green. +" + rewardPoints + " points");
             StartCoroutine(HideWadeAfterDelay(2f));
         }
-        // Add points to your score system here
+        StageScoreManager.Instance.AddPoints(rewardPoints); // ADD THIS LINE
     }
 
     void PunishPlayer()
@@ -104,8 +104,9 @@ public class TrafficLightZone : MonoBehaviour
             tutorialManager.ShowWade("Don't run red lights! " + penaltyPoints + " points");
             StartCoroutine(HideWadeAfterDelay(2f));
         }
-        // Subtract points here
+        StageScoreManager.Instance.AddPoints(penaltyPoints); // ADD THIS LINE
     }
+
 
     private IEnumerator HideWadeAfterDelay(float delay)
     {
