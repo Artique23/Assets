@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro; // For TMP_Text speedometer
 
 public class CarControls : MonoBehaviour
 {
@@ -21,8 +22,13 @@ public class CarControls : MonoBehaviour
     [Header("Car Engine")]
     public float accelerationForce = 1500f;
     public float brakeForce = 3000f;
+    public float speedLimit = 10; // 60 km/h
+    public float accelerationSmoothing = 5f;
+
     public float presentbrakeForce = 0f;
     public float presentAcceleration = 0f;
+
+    private float currentAcceleration = 0f; // For smoothing
 
     [Header("Car Steering")]
     public float maxSteeringAngle = 30f;
@@ -45,6 +51,9 @@ public class CarControls : MonoBehaviour
     [Header("Car Lights Controller")]
     public CarlightController carlightController; // Assign this in the Inspector
 
+    [Header("UI")]
+    public TMP_Text speedometerText; // Assign in inspector
+
     // Turn signal state
     public bool leftSignalOn { get; private set; } = false;
     public bool rightSignalOn { get; private set; } = false;
@@ -54,6 +63,8 @@ public class CarControls : MonoBehaviour
     // Pedal state
     private float pedalInput = 0f; // 1 = pressed, 0 = released
     private float brakeInput = 0f; // 1 = pressed, 0 = released
+
+    public Stage1TutorialManager tutorialManager; // Drag Wade's manager in the inspector
 
     private void Awake()
     {
@@ -107,8 +118,11 @@ public class CarControls : MonoBehaviour
         CarSteering();
         Applybrake();
         UpdateReverseLight();
+        UpdateSpeedometer();
+        ClampSpeed(); // Hard speed cap
     }
 
+    // SPEED LIMIT & SMOOTH ACCELERATION
     private void Movecar()
     {
         float targetAcceleration = 0f;
@@ -116,29 +130,67 @@ public class CarControls : MonoBehaviour
         if (gearShiftController != null)
             currentGear = gearShiftController.GetCurrentGear();
 
+        Rigidbody rb = GetComponent<Rigidbody>();
+        float currentSpeed = rb != null ? rb.velocity.magnitude : 0f;
+
+        bool atSpeedLimit = currentSpeed >= speedLimit;
+
         switch (currentGear)
         {
             case GearShiftController.GearState.Park:
-                targetAcceleration = 0f;
-                break;
-            case GearShiftController.GearState.Reverse:
-                targetAcceleration = -accelerationForce * pedalInput;
-                break;
             case GearShiftController.GearState.Neutral:
                 targetAcceleration = 0f;
                 break;
+            case GearShiftController.GearState.Reverse:
+                if (Mathf.Abs(currentSpeed) < speedLimit)
+                    targetAcceleration = -accelerationForce * pedalInput;
+                else
+                    targetAcceleration = 0f;
+                break;
             case GearShiftController.GearState.Drive:
-                targetAcceleration = accelerationForce * pedalInput;
+                // Only allow positive torque if under the limit
+                if (currentSpeed < speedLimit || pedalInput < 0.01f)
+                    targetAcceleration = accelerationForce * pedalInput;
+                else
+                    targetAcceleration = 0f;
                 break;
         }
 
-        presentAcceleration = targetAcceleration;
+        // Smoother acceleration
+        currentAcceleration = Mathf.Lerp(currentAcceleration, targetAcceleration, Time.deltaTime * accelerationSmoothing);
+        presentAcceleration = currentAcceleration;
 
         frontLeftWheelCollider.motorTorque = presentAcceleration;
         frontRightWheelCollider.motorTorque = presentAcceleration;
         rearLeftWheelCollider.motorTorque = presentAcceleration;
         rearRightWheelCollider.motorTorque = presentAcceleration;
     }
+
+
+    private void ClampSpeed()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            float maxSpeed = speedLimit;
+            float currentSpeed = rb.velocity.magnitude;
+
+            // Hard clamp the velocity
+            if (currentSpeed > maxSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * maxSpeed;
+
+                // Optionally, apply a little extra drag at the limit
+                rb.drag = 2f; // or higher if you want a stronger slowdown
+            }
+            else
+            {
+                // Reset to normal drag (0 is default unless you want a little rolling resistance)
+                rb.drag = 0f;
+            }
+        }
+    }
+
 
     private void UpdateReverseLight()
     {
@@ -170,9 +222,23 @@ public class CarControls : MonoBehaviour
         WT.rotation = rotation;
     }
 
+    // IMPROVED: REALISTIC BRAKING
     private void Applybrake()
     {
         presentbrakeForce = brakeForce * brakeInput;
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            if (brakeInput > 0 && rb.velocity.magnitude > 1f)
+            {
+                rb.drag = 2f; // Tweak as needed
+            }
+            else
+            {
+                rb.drag = 0f;
+            }
+        }
 
         frontLeftWheelCollider.brakeTorque = presentbrakeForce;
         frontRightWheelCollider.brakeTorque = presentbrakeForce;
@@ -199,10 +265,6 @@ public class CarControls : MonoBehaviour
     }
 
     // ----- TURN SIGNAL METHODS -----
-
-    /// <summary>
-    /// Turn ON the left signal and turn OFF the right signal.
-    /// </summary>
     public void SignalLeft()
     {
         leftSignalOn = true;
@@ -214,9 +276,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Turn ON the right signal and turn OFF the left signal.
-    /// </summary>
     public void SignalRight()
     {
         leftSignalOn = false;
@@ -228,9 +287,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Turn OFF both signals.
-    /// </summary>
     public void SignalOff()
     {
         leftSignalOn = false;
@@ -242,9 +298,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggle left signal (for toggle button UI).
-    /// </summary>
     public void ToggleLeftSignal()
     {
         if (!leftSignalOn)
@@ -257,9 +310,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggle right signal (for toggle button UI).
-    /// </summary>
     public void ToggleRightSignal()
     {
         if (!rightSignalOn)
@@ -302,19 +352,24 @@ public class CarControls : MonoBehaviour
         Rigidbody rb = GetComponent<Rigidbody>();
         return rb != null ? rb.velocity.magnitude : 0f;
     }
-    void OnCollisionEnter(Collision collision)
-{
-    if (collision.gameObject.CompareTag("AutonomousVehicle"))
+
+    // SPEEDOMETER DISPLAY
+    private void UpdateSpeedometer()
     {
-        // Subtract 50 points when player hits an AI car
-        StageScoreManager.Instance.AddPoints(-50);
-
-        // Optional: Show a message if you have a tutorial manager reference
-        // if (tutorialManager != null)
-        //     tutorialManager.ShowWade("Don't crash into other cars! -50 points");
-
-        Debug.Log("Player hit an AI car! -50 points");
+        if (speedometerText != null)
+        {
+            float speed = GetCurrentSpeed() * 3.6f; // Unity units/sec to km/h
+            speedometerText.text = Mathf.RoundToInt(speed).ToString() + " km/h";
+        }
     }
-}
 
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("AutonomousVehicle"))
+        {
+            StageScoreManager.Instance.AddPoints(-50);
+            if (tutorialManager != null)
+                tutorialManager.ShowWade("Don't crash into other cars! -50 points");
+        }
+    }
 }
