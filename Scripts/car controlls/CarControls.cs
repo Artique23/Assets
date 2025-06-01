@@ -21,8 +21,13 @@ public class CarControls : MonoBehaviour
     [Header("Car Engine")]
     public float accelerationForce = 1500f;
     public float brakeForce = 3000f;
+    public float speedLimit = 20f; // Speed limit in Unity units/second
+    public float accelerationSmoothing = 5f; // Smoothing for acceleration
+
     public float presentbrakeForce = 0f;
     public float presentAcceleration = 0f;
+
+    private float currentAcceleration = 0f; // For smoothing
 
     [Header("Car Steering")]
     public float maxSteeringAngle = 30f;
@@ -45,6 +50,9 @@ public class CarControls : MonoBehaviour
     [Header("Car Lights Controller")]
     public CarlightController carlightController; // Assign this in the Inspector
 
+    [Header("UI")]
+    public Text speedometerText; // Assign in inspector (or TMP_Text if you use TextMeshPro)
+
     // Turn signal state
     public bool leftSignalOn { get; private set; } = false;
     public bool rightSignalOn { get; private set; } = false;
@@ -54,6 +62,9 @@ public class CarControls : MonoBehaviour
     // Pedal state
     private float pedalInput = 0f; // 1 = pressed, 0 = released
     private float brakeInput = 0f; // 1 = pressed, 0 = released
+
+    public Stage1TutorialManager tutorialManager; // Drag Wade's manager in the inspector
+
 
     private void Awake()
     {
@@ -107,8 +118,10 @@ public class CarControls : MonoBehaviour
         CarSteering();
         Applybrake();
         UpdateReverseLight();
+        UpdateSpeedometer(); // Speedometer update
     }
 
+    // --- NEW: SPEED LIMIT & SMOOTH ACCELERATION ---
     private void Movecar()
     {
         float targetAcceleration = 0f;
@@ -116,23 +129,35 @@ public class CarControls : MonoBehaviour
         if (gearShiftController != null)
             currentGear = gearShiftController.GetCurrentGear();
 
+        Rigidbody rb = GetComponent<Rigidbody>();
+        float currentSpeed = rb != null ? rb.velocity.magnitude : 0f;
+
         switch (currentGear)
         {
             case GearShiftController.GearState.Park:
                 targetAcceleration = 0f;
                 break;
             case GearShiftController.GearState.Reverse:
-                targetAcceleration = -accelerationForce * pedalInput;
+                // Cap reverse speed too
+                if (Mathf.Abs(currentSpeed) < speedLimit)
+                    targetAcceleration = -accelerationForce * pedalInput;
+                else
+                    targetAcceleration = 0f;
                 break;
             case GearShiftController.GearState.Neutral:
                 targetAcceleration = 0f;
                 break;
             case GearShiftController.GearState.Drive:
-                targetAcceleration = accelerationForce * pedalInput;
+                if (currentSpeed < speedLimit)
+                    targetAcceleration = accelerationForce * pedalInput;
+                else
+                    targetAcceleration = 0f;
                 break;
         }
 
-        presentAcceleration = targetAcceleration;
+        // Smoother acceleration
+        currentAcceleration = Mathf.Lerp(currentAcceleration, targetAcceleration, Time.deltaTime * accelerationSmoothing);
+        presentAcceleration = currentAcceleration;
 
         frontLeftWheelCollider.motorTorque = presentAcceleration;
         frontRightWheelCollider.motorTorque = presentAcceleration;
@@ -170,9 +195,24 @@ public class CarControls : MonoBehaviour
         WT.rotation = rotation;
     }
 
+    // --- IMPROVED: REALISTIC BRAKING ---
     private void Applybrake()
     {
         presentbrakeForce = brakeForce * brakeInput;
+
+        // More realistic braking: add drag while braking
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            if (brakeInput > 0 && rb.velocity.magnitude > 1f)
+            {
+                rb.drag = 2f; // You can tweak this value for more/less drag
+            }
+            else
+            {
+                rb.drag = 0f; // Reset drag when not braking
+            }
+        }
 
         frontLeftWheelCollider.brakeTorque = presentbrakeForce;
         frontRightWheelCollider.brakeTorque = presentbrakeForce;
@@ -199,10 +239,6 @@ public class CarControls : MonoBehaviour
     }
 
     // ----- TURN SIGNAL METHODS -----
-
-    /// <summary>
-    /// Turn ON the left signal and turn OFF the right signal.
-    /// </summary>
     public void SignalLeft()
     {
         leftSignalOn = true;
@@ -214,9 +250,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Turn ON the right signal and turn OFF the left signal.
-    /// </summary>
     public void SignalRight()
     {
         leftSignalOn = false;
@@ -228,9 +261,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Turn OFF both signals.
-    /// </summary>
     public void SignalOff()
     {
         leftSignalOn = false;
@@ -242,9 +272,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggle left signal (for toggle button UI).
-    /// </summary>
     public void ToggleLeftSignal()
     {
         if (!leftSignalOn)
@@ -257,9 +284,6 @@ public class CarControls : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggle right signal (for toggle button UI).
-    /// </summary>
     public void ToggleRightSignal()
     {
         if (!rightSignalOn)
@@ -302,19 +326,29 @@ public class CarControls : MonoBehaviour
         Rigidbody rb = GetComponent<Rigidbody>();
         return rb != null ? rb.velocity.magnitude : 0f;
     }
-    void OnCollisionEnter(Collision collision)
-{
-    if (collision.gameObject.CompareTag("AutonomousVehicle"))
+
+    // --- NEW: SPEEDOMETER DISPLAY ---
+    private void UpdateSpeedometer()
     {
-        // Subtract 50 points when player hits an AI car
-        StageScoreManager.Instance.AddPoints(-50);
-
-        // Optional: Show a message if you have a tutorial manager reference
-        // if (tutorialManager != null)
-        //     tutorialManager.ShowWade("Don't crash into other cars! -50 points");
-
-        Debug.Log("Player hit an AI car! -50 points");
+        if (speedometerText != null)
+        {
+            float speed = GetCurrentSpeed() * 3.6f; // Converts Unity units/sec to km/h (approx if 1 unit = 1 meter)
+            speedometerText.text = Mathf.RoundToInt(speed).ToString() + " km/h";
+        }
     }
-}
 
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("AutonomousVehicle"))
+        {
+            // Subtract 50 points when player hits an AI car
+            StageScoreManager.Instance.AddPoints(-50);
+            tutorialManager.ShowWade("Don't crash into other cars! -50 points");
+            
+
+            // Optional: Show a message if you have a tutorial manager reference
+
+            Debug.Log("Player hit an AI car! -50 points");
+        }
+    }
 }
