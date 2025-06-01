@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro; // For TMP_Text speedometer
 
 public class CarControls : MonoBehaviour
 {
@@ -21,8 +22,8 @@ public class CarControls : MonoBehaviour
     [Header("Car Engine")]
     public float accelerationForce = 1500f;
     public float brakeForce = 3000f;
-    public float speedLimit = 20f; // Speed limit in Unity units/second
-    public float accelerationSmoothing = 5f; // Smoothing for acceleration
+    public float speedLimit = 10; // 60 km/h
+    public float accelerationSmoothing = 5f;
 
     public float presentbrakeForce = 0f;
     public float presentAcceleration = 0f;
@@ -51,7 +52,7 @@ public class CarControls : MonoBehaviour
     public CarlightController carlightController; // Assign this in the Inspector
 
     [Header("UI")]
-    public Text speedometerText; // Assign in inspector (or TMP_Text if you use TextMeshPro)
+    public TMP_Text speedometerText; // Assign in inspector
 
     // Turn signal state
     public bool leftSignalOn { get; private set; } = false;
@@ -64,7 +65,6 @@ public class CarControls : MonoBehaviour
     private float brakeInput = 0f; // 1 = pressed, 0 = released
 
     public Stage1TutorialManager tutorialManager; // Drag Wade's manager in the inspector
-
 
     private void Awake()
     {
@@ -118,10 +118,11 @@ public class CarControls : MonoBehaviour
         CarSteering();
         Applybrake();
         UpdateReverseLight();
-        UpdateSpeedometer(); // Speedometer update
+        UpdateSpeedometer();
+        ClampSpeed(); // Hard speed cap
     }
 
-    // --- NEW: SPEED LIMIT & SMOOTH ACCELERATION ---
+    // SPEED LIMIT & SMOOTH ACCELERATION
     private void Movecar()
     {
         float targetAcceleration = 0f;
@@ -132,23 +133,23 @@ public class CarControls : MonoBehaviour
         Rigidbody rb = GetComponent<Rigidbody>();
         float currentSpeed = rb != null ? rb.velocity.magnitude : 0f;
 
+        bool atSpeedLimit = currentSpeed >= speedLimit;
+
         switch (currentGear)
         {
             case GearShiftController.GearState.Park:
+            case GearShiftController.GearState.Neutral:
                 targetAcceleration = 0f;
                 break;
             case GearShiftController.GearState.Reverse:
-                // Cap reverse speed too
                 if (Mathf.Abs(currentSpeed) < speedLimit)
                     targetAcceleration = -accelerationForce * pedalInput;
                 else
                     targetAcceleration = 0f;
                 break;
-            case GearShiftController.GearState.Neutral:
-                targetAcceleration = 0f;
-                break;
             case GearShiftController.GearState.Drive:
-                if (currentSpeed < speedLimit)
+                // Only allow positive torque if under the limit
+                if (currentSpeed < speedLimit || pedalInput < 0.01f)
                     targetAcceleration = accelerationForce * pedalInput;
                 else
                     targetAcceleration = 0f;
@@ -164,6 +165,32 @@ public class CarControls : MonoBehaviour
         rearLeftWheelCollider.motorTorque = presentAcceleration;
         rearRightWheelCollider.motorTorque = presentAcceleration;
     }
+
+
+    private void ClampSpeed()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            float maxSpeed = speedLimit;
+            float currentSpeed = rb.velocity.magnitude;
+
+            // Hard clamp the velocity
+            if (currentSpeed > maxSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * maxSpeed;
+
+                // Optionally, apply a little extra drag at the limit
+                rb.drag = 2f; // or higher if you want a stronger slowdown
+            }
+            else
+            {
+                // Reset to normal drag (0 is default unless you want a little rolling resistance)
+                rb.drag = 0f;
+            }
+        }
+    }
+
 
     private void UpdateReverseLight()
     {
@@ -195,22 +222,21 @@ public class CarControls : MonoBehaviour
         WT.rotation = rotation;
     }
 
-    // --- IMPROVED: REALISTIC BRAKING ---
+    // IMPROVED: REALISTIC BRAKING
     private void Applybrake()
     {
         presentbrakeForce = brakeForce * brakeInput;
 
-        // More realistic braking: add drag while braking
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
             if (brakeInput > 0 && rb.velocity.magnitude > 1f)
             {
-                rb.drag = 2f; // You can tweak this value for more/less drag
+                rb.drag = 2f; // Tweak as needed
             }
             else
             {
-                rb.drag = 0f; // Reset drag when not braking
+                rb.drag = 0f;
             }
         }
 
@@ -327,12 +353,12 @@ public class CarControls : MonoBehaviour
         return rb != null ? rb.velocity.magnitude : 0f;
     }
 
-    // --- NEW: SPEEDOMETER DISPLAY ---
+    // SPEEDOMETER DISPLAY
     private void UpdateSpeedometer()
     {
         if (speedometerText != null)
         {
-            float speed = GetCurrentSpeed() * 3.6f; // Converts Unity units/sec to km/h (approx if 1 unit = 1 meter)
+            float speed = GetCurrentSpeed() * 3.6f; // Unity units/sec to km/h
             speedometerText.text = Mathf.RoundToInt(speed).ToString() + " km/h";
         }
     }
@@ -341,14 +367,9 @@ public class CarControls : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("AutonomousVehicle"))
         {
-            // Subtract 50 points when player hits an AI car
             StageScoreManager.Instance.AddPoints(-50);
-            tutorialManager.ShowWade("Don't crash into other cars! -50 points");
-            
-
-            // Optional: Show a message if you have a tutorial manager reference
-
-            Debug.Log("Player hit an AI car! -50 points");
+            if (tutorialManager != null)
+                tutorialManager.ShowWade("Don't crash into other cars! -50 points");
         }
     }
 }
