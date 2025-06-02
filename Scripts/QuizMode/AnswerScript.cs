@@ -11,18 +11,16 @@ public class AnswerScript : MonoBehaviour
 
     public void Answer()
     {
-        if (isCorrect)
+        if (!quizManager.isShowingFeedback)
         {
-            // Handle correct answer logic here
-            Debug.Log("Correct Answer!");
-            // You can add more logic like updating score, moving to next question, etc.
-            quizManager.correct();
-        }
-        else
-        {
-            // Handle incorrect answer logic here
-            Debug.Log("Incorrect Answer!");
-            // You can add more logic like showing feedback, retrying, etc.
+            if (isCorrect)
+            {
+                quizManager.correct();
+            }
+            else
+            {
+                quizManager.wrong();
+            }
         }
     }
 }
