@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class QuizManager : MonoBehaviour
 {
-    public List<QuestionAndAnswer> QnA; // List of questions and answers
+    public List<QuestionAndAnswer> QnA;
     public GameObject[] options; // UI elements for answer options
     public int currentQuestionIndex; // Track the current question index
     public TextMeshProUGUI QuestionTxt; // UI Text element to display the question; // UI Text element to display the question
@@ -38,7 +38,6 @@ public class QuizManager : MonoBehaviour
     private float currentTime;
     private Coroutine timerCoroutine;
 
-
     [Header("Summary Panel")]
     public GameObject summaryPanel;
     public TextMeshProUGUI FinalScore;
@@ -55,6 +54,10 @@ public class QuizManager : MonoBehaviour
     [Header("Feedback")]
     public GameObject nextButton;
     public bool isShowingFeedback = false;
+
+    [Header("MixAndMatch Mini-Game")]
+    public MixAndMatch mixAndMatchManager; // Reference to the MixAndMatch script
+    private bool miniGamePlayed = false; // Track if mini-game has been played
 
     private void Start()
     {
@@ -281,6 +284,14 @@ public class QuizManager : MonoBehaviour
             return;
         }
 
+        // NEW CODE: Check if we've reached halfway point
+        if (!miniGamePlayed && answeredQuestionsCount >= (maximumQuestions / 2))
+        {
+            // We've reached half of the questions, trigger mini-game
+            StartMiniGame();
+            return;
+        }
+
         if (QnA.Count > 0)
         {
             currentQuestionIndex = Random.Range(0, QnA.Count);
@@ -314,6 +325,36 @@ public class QuizManager : MonoBehaviour
             // End the quiz if we've run out of questions
             gameOver();
         }
+    }
+
+    private void StartMiniGame()
+    {
+        // Set flag so we only play the mini-game once
+        miniGamePlayed = true;
+
+        // Pause the timer if it's running
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+        }
+
+        // Start the mini-game transition
+        if (mixAndMatchManager != null)
+        {
+            mixAndMatchManager.StartMiniGame();
+        }
+        else
+        {
+            Debug.LogError("MixAndMatch reference not set in QuizManager!");
+        }
+    }
+    
+        public void ResumeQuiz()
+    {
+        // Activate quiz panel (the MixAndMatch script will handle this)
+        
+        // Continue with the next question
+        generateQuestion();
     }
 }
 
