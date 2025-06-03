@@ -349,24 +349,16 @@ namespace TrafficSimulation
         public int GetSegmentVehicleIsIn()
         {
             int vehicleSegment = currentTarget.segment;
-            if (vehicleSegment < 0 || vehicleSegment >= trafficSystem.segments.Count)
-            {
-                // Handle error: vehicleSegment is not a valid index
-                return -1; // or some other error value
-            }
             bool isOnSegment = trafficSystem.segments[vehicleSegment].IsOnSegment(this.transform.position);
-
             if (!isOnSegment)
             {
-                if (pastTargetSegment >= 0 && pastTargetSegment < trafficSystem.segments.Count)
-                {
-                    bool isOnPSegment = trafficSystem.segments[pastTargetSegment].IsOnSegment(this.transform.position);
-                    if (isOnPSegment)
-                        vehicleSegment = pastTargetSegment;
-                }
+                bool isOnPSegement = trafficSystem.segments[pastTargetSegment].IsOnSegment(this.transform.position);
+                if (isOnPSegement)
+                    vehicleSegment = pastTargetSegment;
             }
             return vehicleSegment;
         }
+
 
     }
 }
