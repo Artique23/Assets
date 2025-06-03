@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class Stage2Manager : MonoBehaviour
+public class Stage2Manager : StageBaseManager
 {
     [Header("UI & References")]
     public CarControls carControls; // Assign in Inspector
@@ -13,19 +13,15 @@ public class Stage2Manager : MonoBehaviour
     public GameObject[] allOtherUIButtons;
 
     [Header("Gear Shift UI (Slider Setup)")]
-    public Slider gearShiftSlider; 
+    public Slider gearShiftSlider;
     public Image gearShiftImage;
-
-    [Header("Wade Dialogue UI")]
-    public GameObject wadePopupPanel;
-    public TMP_Text wadeText;
 
     void Start()
     {
         carControls.carPoweredOn = true;
         ShowAllControls();
         ShowWade("It's the next day. Ready for your next lessons?");
-        StartCoroutine(HideWadeAfterDelay(2f)); // Show message for 2 seconds (change as needed)
+        StartCoroutine(HideWadeAfterDelay(2f));
     }
 
     void ShowAllControls()
@@ -37,17 +33,6 @@ public class Stage2Manager : MonoBehaviour
         if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(true);
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(true);
-    }
-
-    public void ShowWade(string text)
-    {
-        wadePopupPanel.SetActive(true);
-        wadeText.text = text;
-    }
-
-    public void HideWade()
-    {
-        wadePopupPanel.SetActive(false);
     }
 
     IEnumerator HideWadeAfterDelay(float delay)

@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class LeftTurnYieldScenario : MonoBehaviour
 {
-    public Stage1TutorialManager tutorialManager;
+    public StageBaseManager tutorialManager;
+
     public CarlightController carlightController; // Assign the player's CarlightController script
     public Transform[] aiCars;      // Drag blue-path AI cars here
     public float dangerZone = 15f;  // Distance to consider "too close"
