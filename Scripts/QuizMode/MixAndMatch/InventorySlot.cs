@@ -7,9 +7,8 @@ using UnityEngine.UI;
 public class InventorySlot : MonoBehaviour, IDropHandler
 {
     public Image slotImage;
-    public bool isWinningSlot = false;  // Flag to indicate if this is a winning slot
-    
-    private WinningInventory winningInventory;
+    public bool isWinningSlot = false;
+    public string expectedSignName = ""; // The name of the sign this slot expects (set by WinningInventory)
     
     private void Awake()
     {
@@ -18,44 +17,31 @@ public class InventorySlot : MonoBehaviour, IDropHandler
             
         if (slotImage != null)
             slotImage.raycastTarget = true;
-            
-        // Find the winning inventory manager
-        winningInventory = FindObjectOfType<WinningInventory>();
     }
     
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.pointerDrag != null && transform.childCount == 0)
+        if (eventData.pointerDrag == null) return;
+        
+        DraggableItem draggableItem = eventData.pointerDrag.GetComponent<DraggableItem>();
+        if (draggableItem == null) return;
+        
+        // If this is a winning slot, check if the sign matches what's expected
+        if (isWinningSlot && !string.IsNullOrEmpty(expectedSignName))
         {
-            DraggableItem draggableItem = eventData.pointerDrag.GetComponent<DraggableItem>();
-            
-            if (draggableItem != null)
+            string signName = draggableItem.gameObject.name;
+            if (signName.EndsWith("(Clone)"))
+                signName = signName.Substring(0, signName.Length - 7);
+                
+            // If wrong sign, don't accept it
+            if (signName != expectedSignName)
             {
-                // If this is a winning slot, check if the sign is correct
-                if (isWinningSlot && winningInventory != null)
-                {
-                    int slotIndex = winningInventory.GetSlotIndex(this);
-                    
-                    // If the sign doesn't match what's required for this slot, return it to its original parent
-                    if (!winningInventory.CanPlaceSignInSlot(draggableItem.gameObject, slotIndex))
-                    {
-                        // Wrong sign for this slot - return it
-                        Debug.Log("Wrong sign for slot: " + gameObject.name);
-                        return;
-                    }
-                }
-                
-                // Correct sign or regular inventory slot - accept the item
-                draggableItem.parentAfterDrag = transform;
-                
-                RectTransform itemRect = draggableItem.GetComponent<RectTransform>();
-                if (itemRect != null)
-                {
-                    itemRect.anchoredPosition = Vector2.zero;
-                }
-                
-                Debug.Log("Item dropped into slot: " + gameObject.name);
+                Debug.Log($"Wrong sign! Expected {expectedSignName}, got {signName}");
+                return;
             }
         }
+        
+        // Accept the item
+        draggableItem.parentAfterDrag = transform;
     }
 }
