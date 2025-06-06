@@ -14,8 +14,6 @@ public class ChallengeModeManager : MonoBehaviour
 
     [Header("UI (Stars, Score, Timer)")]
     public Image[] lifeImages;        // Assign 3 star images, left to right
-    public Sprite fullLifeSprite;     // Green/active star
-    public Sprite emptyLifeSprite;    // Gray/empty star
     public TMP_Text timerText;        // (Optional) Timer display
     public TMP_Text scoreText;        // Score display
 
@@ -32,7 +30,7 @@ public class ChallengeModeManager : MonoBehaviour
         collected = 0;
         gameActive = true;
         parkingActivated = false;
-        
+        // StageScoreManager.Instance.ResetPoints(); // Remove this line if not implemented
 
         foreach (var obj in objectiveMarkers)
             obj.SetActive(true);
@@ -102,15 +100,13 @@ public class ChallengeModeManager : MonoBehaviour
 
     void UpdateUI()
     {
-        // Lives UI (stars)
+        // Life stars: turn off a star for each life lost
         if (lifeImages != null && lifeImages.Length > 0)
         {
             for (int i = 0; i < lifeImages.Length; i++)
             {
                 if (lifeImages[i] != null)
-                {
-                    lifeImages[i].sprite = (i < playerLives) ? fullLifeSprite : emptyLifeSprite;
-                }
+                    lifeImages[i].gameObject.SetActive(i < playerLives);
             }
         }
 
