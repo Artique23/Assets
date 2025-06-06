@@ -4,15 +4,16 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class QuizManager : MonoBehaviour
 {
     [System.Serializable]
-public class ButtonInfo
-{
-    public GameObject buttonObject;
-    public Vector2 originalPosition;
-}
+    public class ButtonInfo
+    {
+        public GameObject buttonObject;
+        public Vector2 originalPosition;
+    }
 
     public List<QuestionAndAnswer> QnA;
     public GameObject[] options; // UI elements for answer options
@@ -43,7 +44,7 @@ public class ButtonInfo
     [Header("Timer Settings")]
     public float questionTime = 15f;
     private float currentTime;
-    private Coroutine timerCoroutine;
+    public Coroutine timerCoroutine; // Add this field to your class so it can be accessed by PauseManager
 
     [Header("Summary Panel")]
     public GameObject summaryPanel;
@@ -66,12 +67,63 @@ public class ButtonInfo
     public MixAndMatch mixAndMatchManager; // Reference to the MixAndMatch script
     private bool miniGamePlayed = false; // Track if mini-game has been played
 
+    [Header("Summary Animation Settings")]
+    public Vector2 summaryStartPosition = new Vector2(0, 500); // Start position off-screen
+    public Vector2 summaryFinalPosition = new Vector2(0, 0); // Final centered position
+    public float slideDuration = 0.7f; // How long the panel takes to slide in
+    public float elementFadeDuration = 0.5f; // How long each element takes to fade in
+    public float delayBetweenElements = 0.2f; // Delay between each element fading in
+    public Ease slideEaseType = Ease.OutBack; // Easing for the panel slide
+    public Ease fadeEaseType = Ease.OutQuad; // Easing for fading elements
+
+    [Header("Star Thresholds")]
+    public int star1Threshold = 300; // Score needed for first star
+    public int star2Threshold = 600; // Score needed for second star
+    public int star3Threshold = 900; // Score needed for third star
+
+    [Header("Button Animation Settings")]
+    public float correctButtonScaleMultiplier = 1.2f; // Button will scale to 120% of original size
+    public float buttonAnimationDuration = 0.3f;      // How long the animation takes
+    public Ease buttonAnimationEase = Ease.OutBack;   // The easing function for smooth animation
+
+    // Add this field at the top of your class to store original button scales
+    private Dictionary<GameObject, Vector3> originalButtonScales = new Dictionary<GameObject, Vector3>();
+
+    // Add these new fields
+    private bool isTimerPaused = false;
+    private float pausedTimeRemaining = 0f;
+
+    [Header("Pause Controls")]
+public Button pauseButton; // Pause button for Quiz mode
+
     private void Start()
     {
         totalQuestionsCount = QnA.Count;
+
+        // Store original button scales
+        foreach (var option in options)
+        {
+            originalButtonScales[option] = option.transform.localScale;
+        }
+
+        // Initialize the summary panel components
+        InitializeSummaryPanel();
+
+        // Make sure summary panel is hidden
         summaryPanel.SetActive(false);
+
+        // Set initial score text
         ScoreText.text = "Score: " + scoreCount;
+
+        // Start the quiz
         generateQuestion();
+
+                // Register pause button with PauseManager
+    PauseManager pauseManager = FindObjectOfType<PauseManager>();
+    if (pauseManager != null && pauseButton != null)
+    {
+        pauseManager.RegisterPauseButton(pauseButton);
+    }
     }
 
     // Call this method to start the timer for a question
@@ -165,39 +217,288 @@ public class ButtonInfo
     }
     public void gameOver()
     {
-        quizPanel.SetActive(false); // Hide the quiz panel
+        // Stop any running timers
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+        }
+
+        // Keep the quiz panel active but disable interaction with its buttons
+        foreach (var option in options)
+        {
+            if (option != null && option.GetComponent<Button>() != null)
+            {
+                option.GetComponent<Button>().interactable = false;
+            }
+        }
+
+        // Hide the next button if it's visible
+        if (nextButton != null)
+        {
+            nextButton.SetActive(false);
+        }
+
+        // Activate summary panel but make elements invisible
         summaryPanel.SetActive(true);
+
+        // Update summary panel texts (they'll be invisible initially)
+        FinalScore.text = "Final Score: " + scoreCount.ToString();
+        TotalAnsweredQuestions.text = correctAnswersCount.ToString() + " / " + answeredQuestionsCount;
+
+        // Calculate percentage with one decimal place
+        float percentValue = (answeredQuestionsCount > 0) ?
+            ((float)correctAnswersCount / answeredQuestionsCount * 100) : 0;
+        Percentage.text = percentValue.ToString("F1") + "%";
+
+        // Set label text based on score
+        if (percentValue >= 90)
+            Label.text = "Excellent!" + "\nNice Work!";
+        else if (percentValue >= 75)
+            Label.text = "Great Job! \nYou did well!";
+        else if (percentValue >= 60)
+            Label.text = "Good Work!" + "\nWell Done!";
+        else if (percentValue >= 40)
+            Label.text = "Not Bad!" + "\nKeep Trying!";
+        else
+            Label.text = "Keep Practicing!";
+
+        // Initialize the elements as invisible
+        CanvasGroup panelGroup = summaryPanel.GetComponent<CanvasGroup>();
+        if (panelGroup == null)
+            panelGroup = summaryPanel.AddComponent<CanvasGroup>();
+
+        // Make sure panel is fully visible but elements are hidden
+        panelGroup.alpha = 1f;
+
+        // Hide individual elements
+        SetElementAlpha(FinalScore.gameObject, 0);
+        SetElementAlpha(TotalAnsweredQuestions.gameObject, 0);
+        SetElementAlpha(Percentage.gameObject, 0);
+        SetElementAlpha(Label.gameObject, 0);
+        SetElementAlpha(starContainersShadow, 0);
+        SetElementAlpha(star1, 0);
+        SetElementAlpha(star2, 0);
+        SetElementAlpha(star3, 0);
+        SetElementAlpha(retryButton, 0);
+        SetElementAlpha(homeButton, 0);
+
+        // Position the panel at the start position
+        RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
+        panelRect.anchoredPosition = summaryStartPosition;
+
+        // Start the animation sequence
+        StartCoroutine(AnimateSummaryPanel());
+    }
+
+    // Helper method to set alpha for UI elements
+    private void SetElementAlpha(GameObject element, float alpha)
+    {
+        if (element == null) return;
+
+        // Try to get CanvasGroup, add one if not present
+        CanvasGroup group = element.GetComponent<CanvasGroup>();
+        if (group == null)
+            group = element.AddComponent<CanvasGroup>();
+
+        group.alpha = alpha;
+    }
+
+    private IEnumerator AnimateSummaryPanel()
+    {
+        // Get the panel's RectTransform
+        RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
+
+        // 1. Slide panel from top to final position
+        panelRect.DOAnchorPos(summaryFinalPosition, slideDuration)
+            .SetEase(slideEaseType);
+
+        // Wait for slide to complete
+        yield return new WaitForSeconds(slideDuration);
+
+        // 2. Fade in the label AND shadow container SIMULTANEOUSLY
+        Label.gameObject.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+            
+        // Fade in star container shadow at the same time as the label
+        starContainersShadow.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+
+        yield return new WaitForSeconds(delayBetweenElements * 1.5f);
         
-        // Update summary panel texts
-        FinalScore.text = "Final Score: " + scoreCount.ToString(); // Display the final score (including mini-game)
-        Percentage.text = ((float)correctAnswersCount / answeredQuestionsCount * 100).ToString("F1") + "%"; // Display the percentage
-        TotalAnsweredQuestions.text = correctAnswersCount.ToString() + " / " + answeredQuestionsCount; // Display correct/total
-        
-        // Optionally add text showing mini-game contribution
-        // Create a new TextMeshProUGUI component for this if needed
+        // 3. Fade in score text
+        FinalScore.gameObject.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+
+        yield return new WaitForSeconds(delayBetweenElements);
+
+        // 4. Fade in total answered questions
+        TotalAnsweredQuestions.gameObject.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+
+        yield return new WaitForSeconds(delayBetweenElements);
+
+        // 5. Fade in percentage
+        Percentage.gameObject.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+
+        yield return new WaitForSeconds(delayBetweenElements);
+
+        // 7. Fade in stars based on score thresholds (no scaling)
+        // First star
+        if (scoreCount >= star1Threshold)
+        {
+            star1.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+                .SetEase(fadeEaseType);
+
+            yield return new WaitForSeconds(delayBetweenElements);
+        }
+
+        // Second star
+        if (scoreCount >= star2Threshold)
+        {
+            star2.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+                .SetEase(fadeEaseType);
+
+            yield return new WaitForSeconds(delayBetweenElements);
+        }
+
+        // Third star
+        if (scoreCount >= star3Threshold)
+        {
+            star3.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+                .SetEase(fadeEaseType);
+
+            yield return new WaitForSeconds(delayBetweenElements);
+        }
+
+        // Wait a bit longer before showing buttons
+        yield return new WaitForSeconds(delayBetweenElements * 2);
+
+        // 8. Fade in buttons (no scaling)
+        retryButton.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+
+        yield return new WaitForSeconds(delayBetweenElements * 0.5f);
+
+        homeButton.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
+            .SetEase(fadeEaseType);
+
+        // Animation sequence complete!
     }
 
     public void correct()
     {
+        // Clear previous selection state
+        foreach (var option in options)
+        {
+            option.GetComponent<AnswerScript>().wasSelected = false;
+        }
+
+        // Set the current option as selected
+        GameObject selectedButton = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+        if (selectedButton != null)
+        {
+            AnswerScript answerScript = selectedButton.GetComponent<AnswerScript>();
+            if (answerScript != null)
+            {
+                answerScript.wasSelected = true;
+            }
+        }
+
+        // Track old score for animation
+        int oldScore = scoreCount;
+        
+        // Update internal score values
         correctAnswersCount++;
         scoreCount += 100;
 
-        // Update score display
+        // Animate the score text counting up
         if (ScoreText != null)
-            ScoreText.text = "Score: " + scoreCount;
+            AnimateScoreIncrease(oldScore, scoreCount);
 
         // Show feedback
         ShowFeedback(true);
+    }
+
+    // New method to animate score counting up
+    private void AnimateScoreIncrease(int fromValue, int toValue)
+    {
+        // First create a visual "popup" effect for the score text
+        ScoreText.transform.DOPunchScale(new Vector3(0.2f, 0.2f, 0.2f), 0.3f, 5, 0.5f);
+        
+        // Then animate the score counting up
+        DOTween.To(() => fromValue, x => {
+            // Update UI on each step of the animation
+            ScoreText.text = "Score: " + x.ToString();
+        }, toValue, 0.75f).SetEase(Ease.OutCubic);
+        
+        // Create a floating "+100" text that moves upward and fades out
+        CreateScorePopup("+100", ScoreText.transform.position, Color.green);
+    }
+
+    // Creates a floating score popup
+    private void CreateScorePopup(string text, Vector3 position, Color color)
+    {
+        // Create temporary text game object
+        GameObject tempTextObj = new GameObject("ScorePopup");
+        tempTextObj.transform.SetParent(ScoreText.transform.parent);
+        tempTextObj.transform.position = position;
+        
+        // Add text component
+        TextMeshProUGUI popupText = tempTextObj.AddComponent<TextMeshProUGUI>();
+        popupText.text = text;
+        popupText.fontSize = ScoreText.fontSize * 1.2f;
+        popupText.fontStyle = FontStyles.Bold;
+        popupText.color = color;
+        popupText.alignment = TextAlignmentOptions.Center;
+        
+        // Set its position slightly above the score text
+        RectTransform rectTransform = tempTextObj.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = ScoreText.rectTransform.anchoredPosition + new Vector2(0, -30);
+        
+        // Create animation sequence
+        Sequence popupSequence = DOTween.Sequence();
+        
+        // Scale up slightly
+        popupSequence.Append(tempTextObj.transform.DOScale(1.2f, 0.2f).SetEase(Ease.OutBack));
+        
+        // Move upward
+        popupSequence.Join(rectTransform.DOAnchorPos(
+            rectTransform.anchoredPosition + new Vector2(0, 60), 1.0f)
+            .SetEase(Ease.OutCubic));
+        
+        // Fade out
+        popupSequence.Join(popupText.DOFade(0, 0.8f).SetDelay(0.2f));
+        
+        // Destroy when complete
+        popupSequence.OnComplete(() => {
+            Destroy(tempTextObj);
+        });
     }
 
 
 
     public void wrong()
     {
-        // Just show feedback - don't remove the question or generate new one yet
-        ShowFeedback(false);
+        // Clear previous selection state
+        foreach (var option in options)
+        {
+            option.GetComponent<AnswerScript>().wasSelected = false;
+        }
 
-        // We'll handle question removal and generation in ProceedToNextQuestion
+        // Set the current option as selected
+        GameObject selectedButton = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+        if (selectedButton != null)
+        {
+            AnswerScript answerScript = selectedButton.GetComponent<AnswerScript>();
+            if (answerScript != null)
+            {
+                answerScript.wasSelected = true;
+            }
+        }
+
+        // Show feedback
+        ShowFeedback(false);
     }
 
 
@@ -213,39 +514,129 @@ public class ButtonInfo
 
         // Get the appropriate feedback message from the current question
         string feedback;
+        int correctIndex = QnA[currentQuestionIndex].CorrectAnswer - 1;
+
+        // Display feedback in the QuestionTxt immediately
         if (isCorrect)
         {
             feedback = QnA[currentQuestionIndex].correctExplanation;
+            // Set text color to green for correct answers
+            QuestionTxt.color = new Color(0.2f, 0.8f, 0.2f); // Green color
         }
         else
         {
             // For wrong answers, show the incorrect explanation and the correct answer
-            int correctIndex = QnA[currentQuestionIndex].CorrectAnswer - 1;
             feedback = QnA[currentQuestionIndex].incorrectExplanation;
             feedback += "\n\nThe correct answer was: " + QnA[currentQuestionIndex].Answers[correctIndex];
+
+            // Set text color to red for incorrect answers
+            QuestionTxt.color = new Color(0.9f, 0.2f, 0.2f); // Red color
         }
 
-        // Display feedback in the QuestionTxt instead of a separate feedback text
+        // Update the question text with the feedback
         QuestionTxt.text = feedback;
 
-        // Show the next button
+        // Ensure next button is initially hidden but active
         nextButton.SetActive(true);
+        CanvasGroup nextButtonCanvasGroup = nextButton.GetComponent<CanvasGroup>();
+        if (nextButtonCanvasGroup == null)
+            nextButtonCanvasGroup = nextButton.AddComponent<CanvasGroup>();
+        
+        nextButtonCanvasGroup.alpha = 0;
+        nextButtonCanvasGroup.interactable = false;
+        nextButtonCanvasGroup.blocksRaycasts = false;
 
-        // Since we're using QuestionTxt, we don't need the feedbackText object anymore
-        // Remove or comment out the following lines:
-        // feedbackText.gameObject.SetActive(true);
-        // feedbackText.text = feedback;
+        // Create a main sequence for all animations
+        Sequence mainSequence = DOTween.Sequence();
+
+        if (isCorrect)
+        {
+            // Create a separate sequence for the button animation
+            Sequence buttonSequence = DOTween.Sequence();
+            AnimateCorrectButton(options[correctIndex], buttonSequence);
+            
+            // Add the button animation to the main sequence
+            mainSequence.Append(buttonSequence);
+        }
+        else
+        {
+            // Find which button was selected
+            int selectedButtonIndex = -1;
+            for (int i = 0; i < options.Length; i++)
+            {
+                if (options[i].GetComponent<AnswerScript>().wasSelected)
+                {
+                    selectedButtonIndex = i;
+                    break;
+                }
+            }
+
+            // First shake the wrong button that was selected
+            if (selectedButtonIndex >= 0)
+            {
+                Sequence wrongButtonSequence = DOTween.Sequence();
+                ShakeWrongButton(options[selectedButtonIndex], wrongButtonSequence);
+                mainSequence.Append(wrongButtonSequence);
+            }
+
+            // Then animate the correct button (with a slight delay)
+            mainSequence.AppendInterval(0.3f);
+            Sequence correctButtonSequence = DOTween.Sequence();
+            AnimateCorrectButton(options[correctIndex], correctButtonSequence);
+            mainSequence.Append(correctButtonSequence);
+        }
+
+        // After all animations are complete, fade in the next button
+        mainSequence.OnComplete(() => {
+            // Fade in the next button
+            nextButtonCanvasGroup.DOFade(1, 0.3f).OnComplete(() => {
+                // Enable interaction after fade completes
+                nextButtonCanvasGroup.interactable = true;
+                nextButtonCanvasGroup.blocksRaycasts = true;
+            });
+        });
+
+        // Play the sequence
+        mainSequence.Play();
     }
 
     public void ProceedToNextQuestion()
     {
+        // Reset text color back to normal
+        QuestionTxt.color = Color.white;
+
         // Hide the next button
         nextButton.SetActive(false);
 
-        // Re-enable answer buttons for the next question
+        // Re-enable and reset all buttons (even those deactivated)
         foreach (var option in options)
         {
+            // Make all buttons active first (we'll deactivate unused ones in SetAnswer)
+            option.SetActive(true);
+            
+            // Re-enable button
             option.GetComponent<Button>().interactable = true;
+
+            // Reset selection state
+            option.GetComponent<AnswerScript>().wasSelected = false;
+
+            // Reset button color
+            Image buttonImage = option.GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                buttonImage.color = Color.white; // Or your default button color
+            }
+
+            // Reset to original scale
+            if (originalButtonScales.ContainsKey(option))
+            {
+                option.transform.localScale = originalButtonScales[option];
+            }
+            else
+            {
+                // Fallback to Vector3.one
+                option.transform.localScale = Vector3.one;
+            }
         }
 
         // If we just showed feedback, generate a new question
@@ -263,41 +654,63 @@ public class ButtonInfo
             // Move to next question - this will update QuestionTxt with the new question text
             generateQuestion();
         }
-
-        // We don't need to hide feedbackText anymore since we're using QuestionTxt
-        // Remove or comment out the following line:
-        // feedbackText.gameObject.SetActive(false);
     }
 
 
 
     void SetAnswer()
     {
-        // First set the answers as usual (without changing button positions)
-        for (int i = 0; i < options.Length; i++)
+        // Get how many answers this question has
+        int answerCount = QnA[currentQuestionIndex].Answers.Length;
+        
+        // First make all buttons active
+        foreach (var option in options)
         {
-            options[i].GetComponent<AnswerScript>().isCorrect = false;
-            options[i].transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = QnA[currentQuestionIndex].Answers[i];
-
-            if (QnA[currentQuestionIndex].CorrectAnswer == i + 1)
-            {
-                options[i].GetComponent<AnswerScript>().isCorrect = true; // Set the correct answer
-            }
+            option.SetActive(true);
         }
         
-        // Now shuffle the positions of the buttons
+        // Set up the buttons we need
+        for (int i = 0; i < options.Length; i++)
+        {
+            // Reset button state
+            options[i].GetComponent<AnswerScript>().isCorrect = false;
+            
+            if (i < answerCount)
+            {
+                // This button is needed for this question
+                options[i].transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = QnA[currentQuestionIndex].Answers[i];
+                
+                if (QnA[currentQuestionIndex].CorrectAnswer == i + 1)
+                {
+                    options[i].GetComponent<AnswerScript>().isCorrect = true;
+                }
+            }
+            else
+            {
+                // Deactivate unused buttons
+                options[i].SetActive(false);
+            }
+        }
+
+        // Now shuffle the positions of the active buttons
         RandomizeButtonPositions();
     }
 
-        private void RandomizeButtonPositions()
+    private void RandomizeButtonPositions()
     {
+        // First, ensure all buttons are active (we'll deactivate unused ones after)
+        foreach (var option in options)
+        {
+            option.SetActive(true);
+        }
+
         // Store original positions of all buttons
         Vector3[] originalPositions = new Vector3[options.Length];
         for (int i = 0; i < options.Length; i++)
         {
             originalPositions[i] = options[i].GetComponent<RectTransform>().anchoredPosition;
         }
-        
+
         // Create a shuffled order of indices
         List<int> shuffledIndices = new List<int>();
         for (int i = 0; i < options.Length; i++)
@@ -305,23 +718,28 @@ public class ButtonInfo
             shuffledIndices.Add(i);
         }
         ShuffleList(shuffledIndices);
-        
-        // Log the shuffled order for debugging
-        string debugOrder = "Button position order: ";
-        foreach (int idx in shuffledIndices)
-        {
-            debugOrder += idx + ", ";
-        }
-        Debug.Log(debugOrder);
-        
+
         // Apply shuffled positions to buttons
         for (int i = 0; i < options.Length; i++)
         {
             options[i].GetComponent<RectTransform>().anchoredPosition = originalPositions[shuffledIndices[i]];
         }
+
+        // Check if current question has fewer answers than max buttons
+        int answerCount = QnA[currentQuestionIndex].Answers.Length;
+        if (answerCount < options.Length)
+        {
+            // Deactivate unused buttons
+            for (int i = answerCount; i < options.Length; i++)
+            {
+                options[i].SetActive(false);
+            }
+            
+            Debug.Log($"Question has only {answerCount} answers. Deactivated {options.Length - answerCount} buttons.");
+        }
     }
 
-        private void ShuffleList<T>(List<T> list)
+    private void ShuffleList<T>(List<T> list)
     {
         int n = list.Count;
         while (n > 1)
@@ -354,6 +772,11 @@ public class ButtonInfo
         if (QnA.Count > 0)
         {
             currentQuestionIndex = Random.Range(0, QnA.Count);
+            
+            // Debug the question and its answer count
+            Debug.Log($"Generating question: {QnA[currentQuestionIndex].Question}");
+            Debug.Log($"This question has {QnA[currentQuestionIndex].Answers.Length} answers");
+            
             QuestionTxt.text = QnA[currentQuestionIndex].Question;
 
             // Handle image display
@@ -418,16 +841,18 @@ public class ButtonInfo
 
     public void AddMiniGameScore(int points)
     {
+        // Track old score for animation
+        int oldScore = scoreCount;
+        
         // Add mini-game points to the quiz score
         scoreCount += points;
-        
-        // Update score display
+
+        // Update score display with animation
         if (ScoreText != null)
         {
-            ScoreText.text = "Score: " + scoreCount;
-            StartCoroutine(ShowScoreAddedEffect(points));
+            AnimateScoreIncrease(oldScore, scoreCount);
         }
-        
+
         Debug.Log($"Mini-game score added: {points} points. New total score: {scoreCount}");
     }
     private IEnumerator ShowScoreAddedEffect(int points)
@@ -462,7 +887,181 @@ public class ButtonInfo
         // Destroy the temporary text
         Destroy(tempTextObj);
     }
-    
-    
+
+    private void InitializeSummaryPanel()
+    {
+        // Make sure the summary panel is initially inactive
+        if (summaryPanel != null)
+        {
+            summaryPanel.SetActive(false);
+
+            // Make sure all elements have CanvasGroups
+            if (FinalScore != null && FinalScore.gameObject.GetComponent<CanvasGroup>() == null)
+                FinalScore.gameObject.AddComponent<CanvasGroup>();
+
+            if (TotalAnsweredQuestions != null && TotalAnsweredQuestions.gameObject.GetComponent<CanvasGroup>() == null)
+                TotalAnsweredQuestions.gameObject.AddComponent<CanvasGroup>();
+
+            if (Percentage != null && Percentage.gameObject.GetComponent<CanvasGroup>() == null)
+                Percentage.gameObject.AddComponent<CanvasGroup>();
+
+            if (Label != null && Label.gameObject.GetComponent<CanvasGroup>() == null)
+                Label.gameObject.AddComponent<CanvasGroup>();
+
+            if (starContainersShadow != null && starContainersShadow.GetComponent<CanvasGroup>() == null)
+                starContainersShadow.AddComponent<CanvasGroup>();
+
+            if (star1 != null && star1.GetComponent<CanvasGroup>() == null)
+                star1.AddComponent<CanvasGroup>();
+
+            if (star2 != null && star2.GetComponent<CanvasGroup>() == null)
+                star2.AddComponent<CanvasGroup>();
+
+            if (star3 != null && star3.GetComponent<CanvasGroup>() == null)
+                star3.AddComponent<CanvasGroup>();
+
+            if (retryButton != null && retryButton.GetComponent<CanvasGroup>() == null)
+                retryButton.AddComponent<CanvasGroup>();
+
+            if (homeButton != null && homeButton.GetComponent<CanvasGroup>() == null)
+                homeButton.AddComponent<CanvasGroup>();
+        }
+    }
+
+    private void AnimateCorrectButton(GameObject button, Sequence parentSequence)
+    {
+        // Store original scale
+        Vector3 originalScale = button.transform.localScale;
+
+        // Create a new sequence for this animation
+        Sequence popSequence = DOTween.Sequence();
+
+        // Change to green
+        Image buttonImage = button.GetComponent<Image>();
+        if (buttonImage != null)
+        {
+            Color originalColor = buttonImage.color;
+            popSequence.Append(buttonImage.DOColor(Color.green, 0.2f));
+
+            // Return to original color
+            popSequence.Append(buttonImage.DOColor(originalColor, 0.5f));
+        }
+
+        // Pop forward (scale up and back)
+        popSequence.Join(button.transform.DOScale(originalScale * correctButtonScaleMultiplier, 0.3f)
+            .SetEase(Ease.OutBack));
+
+        // Return to original scale
+        popSequence.Append(button.transform.DOScale(originalScale, 0.2f)
+            .SetEase(Ease.InOutQuad));
+
+        // Add this animation to the parent sequence
+        parentSequence.Append(popSequence);
+    }
+
+    private void ShakeWrongButton(GameObject button, Sequence parentSequence)
+    {
+        // Create a new sequence for this animation
+        Sequence shakeSequence = DOTween.Sequence();
+
+        // Change to red
+        Image buttonImage = button.GetComponent<Image>();
+        if (buttonImage != null)
+        {
+            Color originalColor = buttonImage.color;
+            shakeSequence.Append(buttonImage.DOColor(Color.red, 0.2f));
+
+            // Return to original color
+            shakeSequence.Append(buttonImage.DOColor(originalColor, 0.5f));
+        }
+
+        // Simple left-right shake
+        shakeSequence.Join(button.transform.DOShakePosition(0.5f, new Vector3(15, 0, 0), 10, 90, false, false));
+
+        // Add this animation to the parent sequence
+        parentSequence.Append(shakeSequence);
+    }
+
+    // Add this method to resume timing after pause
+    public void ResumeTiming()
+    {
+        // Only resume if we were showing a question (not feedback)
+        if (!isShowingFeedback)
+        {
+            Debug.Log($"Resuming quiz timer with {pausedTimeRemaining} seconds remaining");
+            
+            // Start a new timer from the stored time (not resetting to questionTime)
+            timerCoroutine = StartCoroutine(ResumeCountdownTimer());
+        }
+    }
+
+    // Add this new coroutine method for resuming the timer
+    private IEnumerator ResumeCountdownTimer()
+    {
+        // Use the stored time if we're resuming from pause
+        if (isTimerPaused)
+        {
+            currentTime = pausedTimeRemaining;
+            isTimerPaused = false;
+        }
+        else
+        {
+            // Initialize timer if not resuming from pause
+            currentTime = questionTime;
+        }
+
+        // Update timer UI
+        if (TimerText != null)
+        {
+            TimerText.text = Mathf.CeilToInt(currentTime).ToString();
+        }
+
+        // Continue the rest of your timer code as normal
+        while (currentTime > 0 && !isShowingFeedback)
+        {
+            yield return null;
+            currentTime -= Time.deltaTime;
+            
+            if (TimerText != null)
+            {
+                TimerText.text = Mathf.CeilToInt(currentTime).ToString();
+                
+                if (currentTime <= 5)
+                    TimerText.color = Color.red;
+                else
+                    TimerText.color = Color.white;
+            }
+        }
+
+        if (!isShowingFeedback)
+        {
+            TimeUp();
+        }
+    }
+
+    // Modify your LoadMainMenu method or add if missing
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadScene("MainMenuScene");
+    }
+
+    // Add the new PauseTimer method
+    public void PauseTimer()
+    {
+        // Store the current time remaining
+        pausedTimeRemaining = currentTime;
+        
+        // Set pause flag
+        isTimerPaused = true;
+        
+        // Stop the coroutine
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+            timerCoroutine = null;
+        }
+        
+        Debug.Log($"Quiz timer paused with {pausedTimeRemaining} seconds remaining");
+    }
 }
 

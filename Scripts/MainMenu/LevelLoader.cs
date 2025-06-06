@@ -87,6 +87,11 @@ public class LevelLoader : MonoBehaviour
             StartCoroutine(LoadLevel("1QuizEasy"));
         }
     }
+    public void LoadMainMenu()
+    {
+        Debug.Log("Returning to Main Menu...");
+        StartCoroutine(LoadLevel("MainMenuScene"));
+    }
     // Fix the other quiz loading methods to use the animation coroutine
     
     // End for QUIZ Loading Scenes Code

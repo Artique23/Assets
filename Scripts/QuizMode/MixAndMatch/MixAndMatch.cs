@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening; // Add this for DOTween animations
 
 public class MixAndMatch : MonoBehaviour
 {
@@ -39,6 +40,22 @@ public class MixAndMatch : MonoBehaviour
     public TextMeshProUGUI summaryRoundsText; // Text to display completed rounds
     public Button summaryContinueButton; // Button to continue from summary
 
+    [Header("Summary Panel Animation")]
+    public Vector2 summaryStartPosition = new Vector2(800, 0); // Start position off-screen to the right
+    public Vector2 summaryHiddenPosition = new Vector2(800, 0); // Position to slide to when hiding
+    public float slideDuration = 0.7f;         // How long the panel takes to slide in/out
+    public float elementFadeDuration = 0.4f;   // How long each element takes to fade in
+    public float delayBetweenElements = 0.1f;  // Delay between elements fading in
+    public Ease slideEaseType = Ease.OutBack;  // Easing for the panel slide
+    public Ease fadeEaseType = Ease.OutQuad;   // Easing for fading elements
+
+    [Header("Pause Controls")]
+    public Button pauseButton; // Pause button for Mix and Match mode
+
+    // Add these new fields
+    private bool isTimerPaused = false;
+    private float pausedTimeRemaining = 0f;
+
     void Start()
     {
         // Make sure panels have CanvasGroup components for fading
@@ -73,6 +90,12 @@ public class MixAndMatch : MonoBehaviour
         {
             winningInventory = FindObjectOfType<WinningInventory>();
         }
+
+        PauseManager pauseManager = FindObjectOfType<PauseManager>();
+        if (pauseManager != null && pauseButton != null)
+        {
+            pauseManager.RegisterPauseButton(pauseButton);
+        }
     }
 
     private void SetupCanvasGroups()
@@ -105,6 +128,12 @@ public class MixAndMatch : MonoBehaviour
         gameEnded = false;
         totalScore = 0;
         
+        // Explicitly make sure summary panel is hidden
+        if (summaryPanel != null)
+        {
+            summaryPanel.SetActive(false);
+        }
+        
         // Setup mini-game with initial shuffle
         SetupMiniGame();
         
@@ -131,6 +160,12 @@ public class MixAndMatch : MonoBehaviour
 
     private IEnumerator TransitionToMiniGame()
     {
+        // Make sure summary panel is hidden before starting
+        if (summaryPanel != null && summaryPanel.activeSelf)
+        {
+            summaryPanel.SetActive(false);
+        }
+        
         // Fade out quiz panel
         if (quizPanelCanvasGroup != null)
         {
@@ -227,8 +262,35 @@ public class MixAndMatch : MonoBehaviour
         if (gameEnded)
             return;
             
-        // End the game early
-        EndGame();
+        // Calculate final score before ending
+        if (winningInventory != null)
+        {
+            int completedRounds = Mathf.Max(0, winningInventory.CurrentRound - 1);
+            totalScore = completedRounds * pointsPerCompletedRound;
+            Debug.Log($"Game ended early with {completedRounds} completed rounds for {totalScore} points");
+        }
+        
+        // Set game ended flag
+        gameEnded = true;
+        
+        // Stop timer
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+        }
+        
+        // Disable input for all draggable items
+        DisableDragging();
+        
+        // Add score to quiz manager directly
+        if (quizManager != null)
+        {
+            quizManager.AddMiniGameScore(totalScore);
+            Debug.Log($"Added {totalScore} points to quiz score");
+        }
+        
+        // Return to quiz without showing summary panel
+        StartCoroutine(ReturnToQuiz());
     }
 
     // End the game and show summary
@@ -254,8 +316,16 @@ public class MixAndMatch : MonoBehaviour
         // Disable input for all draggable items
         DisableDragging();
         
-        // Show summary panel
-        ShowSummaryPanel();
+        // Only show summary panel if the timer has run out (or is very close to 0)
+        if (remainingTime <= 0.1f)
+        {
+            ShowSummaryPanel();
+        }
+        else
+        {
+            // If the game was ended early (by button click), just return to quiz
+            StartCoroutine(ReturnToQuiz());
+        }
     }
 
     // Disable dragging for all items
@@ -274,48 +344,154 @@ public class MixAndMatch : MonoBehaviour
 
     // Show the summary panel with score
     private void ShowSummaryPanel()
-{
-    if (summaryPanel != null)
     {
-        // Show panel
-        summaryPanel.SetActive(true);
-        
-        // Update score text
-        if (summaryScoreText != null)
+        if (summaryPanel != null)
         {
-            summaryScoreText.text = $"Total Score: {totalScore}";
-        }
-        
-        // Update rounds text
-        if (summaryRoundsText != null && winningInventory != null)
-        {
-            int completedRounds = Mathf.Max(0, winningInventory.CurrentRound - 1);
-            summaryRoundsText.text = $"Completed Rounds: {completedRounds}";
-        }
-        
-        // Hide the game continue button (if it exists)
-        if (continueButton != null)
-        {
-            continueButton.gameObject.SetActive(false);
-        }
-        
-        // Make sure the summary continue button is active and visible
-        if (summaryContinueButton != null)
-        {
-            summaryContinueButton.gameObject.SetActive(true);
+            // Make panel active but position it off-screen first
+            summaryPanel.SetActive(true);
             
-            // Ensure the button is interactable
-            summaryContinueButton.interactable = true;
+            // Get the panel's RectTransform
+            RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
             
-            // Log for debugging
-            Debug.Log("Summary continue button is active: " + summaryContinueButton.gameObject.activeInHierarchy);
-        }
-        else
-        {
-            Debug.LogError("Summary continue button is not assigned in the inspector!");
+            // Set initial position (off-screen to the right)
+            panelRect.anchoredPosition = summaryStartPosition;
+            
+            // Make sure panel elements have CanvasGroups
+            EnsureSummaryElementsHaveCanvasGroups();
+            
+            // Hide all elements initially (they'll fade in during animation)
+            SetSummaryElementsAlpha(0);
+            
+            // Update text values
+            if (summaryScoreText != null)
+            {
+                summaryScoreText.text = $"Total Score: {totalScore}";
+            }
+            
+            if (summaryRoundsText != null && winningInventory != null)
+            {
+                int completedRounds = Mathf.Max(0, winningInventory.CurrentRound - 1);
+                summaryRoundsText.text = $"Completed Rounds: {completedRounds}";
+            }
+            
+            // Hide the game continue button
+            if (continueButton != null)
+            {
+                continueButton.gameObject.SetActive(false);
+            }
+            
+            // Make sure summary continue button is active
+            if (summaryContinueButton != null)
+            {
+                summaryContinueButton.gameObject.SetActive(true);
+                summaryContinueButton.interactable = true;
+            }
+            
+            // Start animation sequence
+            StartCoroutine(AnimateSummaryPanelIn());
         }
     }
-}
+
+    // Add these new methods for handling the animations
+    private IEnumerator AnimateSummaryPanelIn()
+    {
+        // Get the panel's RectTransform
+        RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
+        
+        // 1. Slide panel from right to center
+        panelRect.DOAnchorPos(Vector2.zero, slideDuration)
+            .SetEase(slideEaseType);
+        
+        // Wait for slide to complete
+        yield return new WaitForSeconds(slideDuration);
+        
+        // 2. Fade in each element with slight delays between them
+        
+        // Fade in score text
+        if (summaryScoreText != null)
+        {
+            CanvasGroup scoreGroup = summaryScoreText.gameObject.GetComponent<CanvasGroup>();
+            if (scoreGroup != null)
+            {
+                scoreGroup.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+            }
+        }
+        
+        yield return new WaitForSeconds(delayBetweenElements);
+        
+        // Fade in rounds text
+        if (summaryRoundsText != null)
+        {
+            CanvasGroup roundsGroup = summaryRoundsText.gameObject.GetComponent<CanvasGroup>();
+            if (roundsGroup != null)
+            {
+                roundsGroup.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+            }
+        }
+        
+        yield return new WaitForSeconds(delayBetweenElements * 2);
+        
+        // Fade in continue button without changing its size
+        if (summaryContinueButton != null)
+        {
+            CanvasGroup buttonGroup = summaryContinueButton.gameObject.GetComponent<CanvasGroup>();
+            if (buttonGroup != null)
+            {
+                // Just fade in the button without scaling
+                buttonGroup.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+                
+                // Optional: Add a subtle highlight effect instead of scaling
+                Image buttonImage = summaryContinueButton.GetComponent<Image>();
+                if (buttonImage != null)
+                {
+                    // Store original color
+                    Color originalColor = buttonImage.color;
+                    Color highlightColor = new Color(
+                        Mathf.Min(originalColor.r + 0.2f, 1f),
+                        Mathf.Min(originalColor.g + 0.2f, 1f),
+                        Mathf.Min(originalColor.b + 0.2f, 1f),
+                        originalColor.a
+                    );
+                    
+                    // Create a subtle flash effect
+                    buttonImage.DOColor(highlightColor, elementFadeDuration * 0.5f)
+                        .SetLoops(2, LoopType.Yoyo);
+                }
+            }
+        }
+    }
+
+    private void EnsureSummaryElementsHaveCanvasGroups()
+    {
+        // Add CanvasGroups to all summary elements if they don't have them
+        if (summaryScoreText != null && summaryScoreText.gameObject.GetComponent<CanvasGroup>() == null)
+            summaryScoreText.gameObject.AddComponent<CanvasGroup>();
+            
+        if (summaryRoundsText != null && summaryRoundsText.gameObject.GetComponent<CanvasGroup>() == null)
+            summaryRoundsText.gameObject.AddComponent<CanvasGroup>();
+            
+        if (summaryContinueButton != null && summaryContinueButton.gameObject.GetComponent<CanvasGroup>() == null)
+            summaryContinueButton.gameObject.AddComponent<CanvasGroup>();
+    }
+
+    private void SetSummaryElementsAlpha(float alpha)
+    {
+        // Set alpha for all summary elements
+        SetElementAlpha(summaryScoreText?.gameObject, alpha);
+        SetElementAlpha(summaryRoundsText?.gameObject, alpha);
+        SetElementAlpha(summaryContinueButton?.gameObject, alpha);
+    }
+
+    private void SetElementAlpha(GameObject element, float alpha)
+    {
+        if (element == null) return;
+        
+        CanvasGroup group = element.GetComponent<CanvasGroup>();
+        if (group == null)
+            group = element.AddComponent<CanvasGroup>();
+            
+        group.alpha = alpha;
+    }
 
     // Called when summary continue button is clicked
     public void OnSummaryContinueClicked()
@@ -327,11 +503,27 @@ public class MixAndMatch : MonoBehaviour
             Debug.Log($"Added {totalScore} points to quiz score");
         }
         
-        // Hide summary panel
-        if (summaryPanel != null)
-        {
-            summaryPanel.SetActive(false);
-        }
+        // Start animation to slide panel out
+        StartCoroutine(AnimateSummaryPanelOut());
+    }
+
+    private IEnumerator AnimateSummaryPanelOut()
+    {
+        // Get the panel's RectTransform
+        RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
+        
+        // Fade out all elements quickly
+        SetSummaryElementsAlpha(0);
+        
+        // Slide panel back to the right
+        panelRect.DOAnchorPos(summaryHiddenPosition, slideDuration * 0.7f)
+            .SetEase(Ease.InBack);
+        
+        // Wait for slide to complete
+        yield return new WaitForSeconds(slideDuration * 0.7f);
+        
+        // Hide the panel
+        summaryPanel.SetActive(false);
         
         // Return to quiz
         StartCoroutine(ReturnToQuiz());
@@ -379,5 +571,69 @@ public class MixAndMatch : MonoBehaviour
         }
 
         group.alpha = endAlpha;
+    }
+
+    // Add this new method to pause the timer
+    public void PauseTimer()
+    {
+        // Store the current time remaining
+        pausedTimeRemaining = remainingTime;
+        
+        // Set pause flag
+        isTimerPaused = true;
+        
+        // Stop the coroutine
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+            timerCoroutine = null;
+        }
+        
+        Debug.Log($"MixAndMatch timer paused with {pausedTimeRemaining} seconds remaining");
+    }
+
+    // Modify the ResumeTiming method
+    public void ResumeTiming()
+    {
+        // Only resume if game is not ended
+        if (!gameEnded)
+        {
+            Debug.Log($"Resuming MixAndMatch timer with {pausedTimeRemaining} seconds remaining");
+            
+            // Start a new timer from the stored time (not resetting to gameTime)
+            timerCoroutine = StartCoroutine(ResumeCountdownTimer());
+        }
+    }
+
+    // Add this new coroutine method for resuming the timer
+    private IEnumerator ResumeCountdownTimer()
+    {
+        // Use the stored time if we're resuming from pause
+        if (isTimerPaused)
+        {
+            remainingTime = pausedTimeRemaining;
+            isTimerPaused = false;
+        }
+        else
+        {
+            // Initialize timer if not resuming from pause
+            remainingTime = gameTime;
+        }
+        
+        // Continue the timer loop as normal
+        while (remainingTime > 0 && !gameEnded)
+        {
+            UpdateTimerDisplay();
+            yield return null;
+            remainingTime -= Time.deltaTime;
+        }
+        
+        remainingTime = 0;
+        UpdateTimerDisplay();
+        
+        if (!gameEnded)
+        {
+            EndGame();
+        }
     }
 }

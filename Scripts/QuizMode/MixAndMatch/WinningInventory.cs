@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using DG.Tweening; // Add DOTween namespace
 
 public class WinningInventory : MonoBehaviour
 {
@@ -16,6 +17,11 @@ public class WinningInventory : MonoBehaviour
 
     [Header("Game Settings")]
     public int totalRounds;
+    
+    [Header("Animation Settings")]
+    public float buttonBreatheDuration = 1.5f;
+    public float buttonBreathScale = 1.1f;
+    public float signFadeDuration = 0.5f;
 
     // Private variables
     private List<GameObject> spawnedSigns = new List<GameObject>();
@@ -23,6 +29,7 @@ public class WinningInventory : MonoBehaviour
     private int currentRound = 0;
     private bool roundComplete = false;
     private bool isQuizPanelActive = false;
+    private Tween buttonBreatheTween;
 
     [Header("References")]
     public GameObject quizPanel; // Reference to the quiz panel
@@ -57,6 +64,13 @@ public class WinningInventory : MonoBehaviour
             OnRoundComplete();
         }
     }
+    
+    void OnDestroy()
+    {
+        // Kill all tweens when the object is destroyed
+        if (buttonBreatheTween != null)
+            buttonBreatheTween.Kill();
+    }
 
     public int CurrentRound
     {
@@ -82,8 +96,57 @@ public class WinningInventory : MonoBehaviour
             return;
         }
 
-        // Just use instant shuffle
-        InstantlyShuffle(roadSigns);
+        // Fade out signs before shuffling
+        FadeOutSigns(roadSigns, () => {
+            // Shuffle the signs
+            InstantlyShuffle(roadSigns);
+            
+            // Fade them back in
+            FadeInSigns(roadSigns);
+        });
+    }
+    
+    // Fade out all signs
+    private void FadeOutSigns(List<DraggableItem> signs, TweenCallback onComplete)
+    {
+        Sequence fadeSequence = DOTween.Sequence();
+        
+        // Fade out each sign
+        foreach (DraggableItem sign in signs)
+        {
+            if (sign == null) continue;
+            
+            // Get or add CanvasGroup
+            CanvasGroup canvasGroup = sign.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = sign.gameObject.AddComponent<CanvasGroup>();
+                
+            // Add fade to sequence
+            fadeSequence.Join(canvasGroup.DOFade(0, signFadeDuration));
+        }
+        
+        // Set callback when all fades complete
+        fadeSequence.OnComplete(onComplete);
+    }
+    
+    // Fade in all signs
+    private void FadeInSigns(List<DraggableItem> signs)
+    {
+        Sequence fadeSequence = DOTween.Sequence();
+        
+        // Fade in each sign
+        foreach (DraggableItem sign in signs)
+        {
+            if (sign == null) continue;
+            
+            // Get CanvasGroup (should exist from FadeOutSigns)
+            CanvasGroup canvasGroup = sign.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = sign.gameObject.AddComponent<CanvasGroup>();
+                
+            // Add fade to sequence
+            fadeSequence.Join(canvasGroup.DOFade(1, signFadeDuration));
+        }
     }
 
     private void InstantlyShuffle(List<DraggableItem> signs)
@@ -128,6 +191,13 @@ public class WinningInventory : MonoBehaviour
 
     public void StartNextRound()
     {
+        // Stop the breathing animation
+        if (buttonBreatheTween != null)
+        {
+            buttonBreatheTween.Kill();
+            buttonBreatheTween = null;
+        }
+        
         // Reset state
         roundComplete = false;
         currentRoundSignNames.Clear();
@@ -262,10 +332,14 @@ public class WinningInventory : MonoBehaviour
     {
         Debug.Log("Round Complete!");
 
-        // Show next button, regardless of round number
+        // Show next button with breathing animation
         if (nextButton != null)
         {
+            // Make button visible (without changing its scale)
             nextButton.gameObject.SetActive(true);
+            
+            // Start breathing animation immediately from its current scale
+            StartButtonBreathingAnimation();
         }
         
         // Optional: Display a "congratulations" message if desired
@@ -274,6 +348,26 @@ public class WinningInventory : MonoBehaviour
             Debug.Log($"Reached round {currentRound} of {totalRounds}! Keep going!");
             // You can add additional UI feedback here if desired
         }
+    }
+    
+    // Start the breathing animation for the next button
+    private void StartButtonBreathingAnimation()
+    {
+        // Stop any existing tween
+        if (buttonBreatheTween != null)
+        {
+            buttonBreatheTween.Kill();
+        }
+        
+        // Store the original scale to return to between pulses
+        Vector3 originalScale = nextButton.transform.localScale;
+        Vector3 targetScale = originalScale * buttonBreathScale;
+        
+        // Create breathing animation (scale in and out)
+        buttonBreatheTween = nextButton.transform
+            .DOScale(targetScale, buttonBreatheDuration)
+            .SetEase(Ease.InOutQuad)
+            .SetLoops(-1, LoopType.Yoyo); // -1 means infinite loops
     }
 
     public void ResetCurrentRound()
@@ -286,7 +380,16 @@ public class WinningInventory : MonoBehaviour
 
         // Hide next button
         if (nextButton != null)
+        {
+            // Kill any existing tween
+            if (buttonBreatheTween != null)
+            {
+                buttonBreatheTween.Kill();
+                buttonBreatheTween = null;
+            }
+            
             nextButton.gameObject.SetActive(false);
+        }
     }
 
     private void ReturnSignsToContainer()
