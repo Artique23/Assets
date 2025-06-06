@@ -4,15 +4,131 @@ using UnityEngine;
 
 public class TrafficLightZone_Challenge : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public RedLightStatus redLightStatus; // Assign the correct RedLightStatus (the light for the player's lane)
+    public StageBaseManager tutorialManager; // (Optional, for Wade hints in normal mode)
+    public float requiredWaitTime = 2f;
+    public int rewardPoints = 100;
+    public int penaltyPoints = -50;
+
+    private bool playerInside = false;
+    private float waitTimer = 0f;
+    private bool rewarded = false;
+    private bool penalized = false;
+    private bool waitHintShown = false; // Prevent spamming "Wait for green!"
+    private ChallengeModeManager challengeModeManager;
+
     void Start()
     {
-        
+        challengeModeManager = FindObjectOfType<ChallengeModeManager>();
     }
 
-    // Update is called once per frame
+    void OnTriggerEnter(Collider other)
+    {
+        Transform t = other.transform;
+        while (t != null)
+        {
+            if (t.CompareTag("Player"))
+            {
+                playerInside = true;
+                waitTimer = 0f;
+                rewarded = false;
+                penalized = false;
+                waitHintShown = false;
+                break;
+            }
+            t = t.parent;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        Transform t = other.transform;
+        while (t != null)
+        {
+            if (t.CompareTag("Player"))
+            {
+                // If leaving during red, punish
+                if (IsRed() && !rewarded && !penalized)
+                {
+                    PunishPlayer();
+                }
+                playerInside = false;
+                waitTimer = 0f;
+                waitHintShown = false;
+                break;
+            }
+            t = t.parent;
+        }
+    }
+
     void Update()
     {
-        
+        if (!playerInside || rewarded) return;
+
+        if (IsRed())
+        {
+            waitTimer += Time.deltaTime;
+
+            // Show Wade dialog ONLY if not in Challenge Mode
+            if (tutorialManager != null && challengeModeManager == null && !waitHintShown)
+            {
+                tutorialManager.ShowWade("Wait for green!");
+                StartCoroutine(HideWadeAfterDelay(2f));
+                waitHintShown = true;
+            }
+        }
+        else // Turned green while inside
+        {
+            if (waitTimer >= requiredWaitTime && !rewarded)
+            {
+                RewardPlayer();
+            }
+        }
+    }
+
+    bool IsRed()
+    {
+        return redLightStatus.lightGroupId == redLightStatus.intersection.currentRedLightsGroup;
+    }
+
+    void RewardPlayer()
+    {
+        rewarded = true;
+        // In Challenge Mode: add points via the manager, otherwise normal points
+        if (challengeModeManager != null)
+            challengeModeManager.AddChallengePoints(rewardPoints);
+        else
+            StageScoreManager.Instance.AddPoints(rewardPoints);
+
+        // Show dialog ONLY if not in Challenge Mode
+        if (tutorialManager != null && challengeModeManager == null)
+        {
+            tutorialManager.ShowWade("Good job! You waited for green. +" + rewardPoints + " points");
+            StartCoroutine(HideWadeAfterDelay(2f));
+        }
+    }
+
+    void PunishPlayer()
+    {
+        penalized = true;
+        // In Challenge Mode: lose a life, otherwise lose points
+        if (challengeModeManager != null)
+            challengeModeManager.LoseLife();
+        else
+            StageScoreManager.Instance.AddPoints(penaltyPoints);
+
+        // Show dialog ONLY if not in Challenge Mode
+        if (tutorialManager != null && challengeModeManager == null)
+        {
+            tutorialManager.ShowWade("Don't run red lights! " + penaltyPoints + " points");
+            StartCoroutine(HideWadeAfterDelay(2f));
+        }
+    }
+
+    private IEnumerator HideWadeAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (tutorialManager != null)
+            tutorialManager.HideWade();
     }
 }
