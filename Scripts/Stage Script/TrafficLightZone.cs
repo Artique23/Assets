@@ -5,7 +5,7 @@ using UnityEngine;
 public class TrafficLightZone : MonoBehaviour
 {
     public RedLightStatus redLightStatus; // Assign the correct RedLightStatus (the light for the player's lane)
-    public Stage1TutorialManager tutorialManager; // For Wade hints
+    public StageBaseManager tutorialManager; // For Wade hints
     public float requiredWaitTime = 2f;
     public int rewardPoints = 100;
     public int penaltyPoints = -50;

@@ -7,10 +7,11 @@ public class PedestrianMover : MonoBehaviour
     public float speed = 2f;
     private Vector3 target;
     private bool moving = false;
-    private Stage1TutorialManager tutorialManager;
+    public StageBaseManager tutorialManager;
+
     private bool isDone = false;
 
-    public void Init(Vector3 targetPos, Stage1TutorialManager manager)
+    public void Init(Vector3 targetPos, StageBaseManager manager)
     {
         target = targetPos;
         moving = true;

@@ -7,7 +7,9 @@ public class JaywalkTrigger : MonoBehaviour
     public GameObject npcPrefab; // Pedestrian prefab
     public Transform spawnPoint; // Where the NPC appears
     public Transform endPoint;   // Where the NPC walks to
-    public Stage1TutorialManager tutorialManager;
+    public StageBaseManager tutorialManager;
+
+
     private bool hasSpawned = false;
 
     void OnTriggerEnter(Collider other)

@@ -61,8 +61,8 @@ public class CarControls : MonoBehaviour
     private bool isFirstPerson = false;
 
     // Pedal state
-    private float pedalInput = 0f; // 1 = pressed, 0 = released
-    private float brakeInput = 0f; // 1 = pressed, 0 = released
+    public float pedalInput = 0f; // 1 = pressed, 0 = released
+    public float brakeInput = 0f; // 1 = pressed, 0 = released
 
     public Stage1TutorialManager tutorialManager; // Drag Wade's manager in the inspector
 
