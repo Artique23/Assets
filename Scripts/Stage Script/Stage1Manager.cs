@@ -31,6 +31,9 @@ public class Stage1TutorialManager : MonoBehaviour
 
     // NEW: Gear tutorial tracking
     private int lastGearIndex = -1;
+
+    public TMP_Text scoreText; // Assign in Inspector
+
     private readonly string[] gearHints = {
         "<b>P</b> = Park (vehicle won't move)",
         "<b>R</b> = Reverse (move backward)",
@@ -44,6 +47,13 @@ public class Stage1TutorialManager : MonoBehaviour
         HideAllControls();
         StartCoroutine(RunTutorialSequence());
     }
+
+    void Update()
+    {
+        if (scoreText != null)
+            scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
+    }
+
 
     void HideAllControls()
     {
