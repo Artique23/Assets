@@ -15,6 +15,7 @@ public class Stage2Manager : StageBaseManager
     [Header("Gear Shift UI (Slider Setup)")]
     public Slider gearShiftSlider;
     public Image gearShiftImage;
+    public TMP_Text scoreText; // Assign in Inspector
 
     void Start()
     {
@@ -23,6 +24,12 @@ public class Stage2Manager : StageBaseManager
         ShowWade("It's the next day. Ready for your next lessons?");
         StartCoroutine(HideWadeAfterDelay(2f));
     }
+    void Update()
+    {
+        if (scoreText != null)
+            scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
+    }
+
 
     void ShowAllControls()
     {
