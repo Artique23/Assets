@@ -225,7 +225,7 @@ public class Stage1TutorialManager : MonoBehaviour
         if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(true);
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(true);
-        // (Tutorial is complete; continue with your stage/advanced scenarios here!)
+
     }
 
     IEnumerator CheckStopped()
