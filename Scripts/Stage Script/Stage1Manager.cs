@@ -239,9 +239,7 @@ public class Stage1TutorialManager : StageBaseManager
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(true);
 
-        // If you want to prevent any further dialog after tutorial:
-        // EndTutorial();
-    }
+        
 
     IEnumerator CheckStopped()
     {
