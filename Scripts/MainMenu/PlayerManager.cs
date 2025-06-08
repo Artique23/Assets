@@ -10,7 +10,7 @@ public class PlayerManager : MonoBehaviour
     public static PlayerManager Instance { get; private set; }
     
     // Player information
-    [SerializeField] private int playerCurrency = 0;
+    [SerializeField] private int playerCurrency = 20;
     [SerializeField] private int carsUnlocked = 1; // Start with 1 car unlocked
     [SerializeField] private bool[] unlockedCars = new bool[3]; // Track which cars are unlocked
     [SerializeField] private int selectedCar = 0; // Which car is selected now
@@ -233,6 +233,28 @@ public class PlayerManager : MonoBehaviour
         {
             Debug.LogError("Failed to load player data: " + e.Message);
         }
+    }
+
+    // Add this method to your PlayerManager class
+    public void Add10Currency()
+    {
+        // Add 10 currency
+        playerCurrency += 10;
+        
+        // Save the data
+        SavePlayerData();
+        
+        // Update UI if needed
+        var managers = FindObjectsOfType<GameManagerSaveAndLoad>();
+        foreach (var manager in managers)
+        {
+            if (manager != null)
+            {
+                manager.SendMessage("UpdateUI", null, SendMessageOptions.DontRequireReceiver);
+            }
+        }
+        
+        Debug.Log("Added 10 currency. New total: " + playerCurrency);
     }
 }
 
