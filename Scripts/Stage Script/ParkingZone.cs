@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class ParkingZone : MonoBehaviour
 {
@@ -28,6 +30,13 @@ public class ParkingZone : MonoBehaviour
     public float emissionMin = 0.5f;
     public float emissionMax = 2f;
 
+    // WIN UI references
+    public GameObject winPanel;       // NEW: Assign your Win UI panel
+    public TMP_Text scoreText;        // NEW: Assign in Inspector
+    public Image[] starImages;        // NEW: 3 stars, left to right
+    public Sprite fullStarSprite;     // NEW: full/star-on sprite
+    public Sprite emptyStarSprite;    // NEW: empty/star-off sprite
+
     void Start()
     {
         if (highlightVisual != null)
@@ -35,6 +44,10 @@ public class ParkingZone : MonoBehaviour
             highlightVisual.SetActive(false);
             baseScale = highlightVisual.transform.localScale;
         }
+
+        // Hide win panel at start
+        if (winPanel != null)
+            winPanel.SetActive(false);
     }
 
     public void ActivateParkingHighlight()
@@ -78,6 +91,8 @@ public class ParkingZone : MonoBehaviour
 
     void Update()
     {
+
+        finalGameMarker = markerGone ? null : finalGameMarker;
         // Show highlight when marker is destroyed/inactive, even if player hasn't entered yet
         if (!markerGone && (finalGameMarker == null || !finalGameMarker.activeSelf))
         {
@@ -114,7 +129,10 @@ public class ParkingZone : MonoBehaviour
                 {
                     // Success!
                     StageScoreManager.Instance.AddPoints(100);
-                    ShowDialogAutoHide("Congratulations! You parked successfully!\nTotal Points: " + StageScoreManager.Instance.GetPoints(), 2f);
+
+                    // Show win panel!
+                    ShowWinPanel();
+
                     if (highlightVisual != null)
                         highlightVisual.SetActive(false);
                     enabled = false;
@@ -142,5 +160,35 @@ public class ParkingZone : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         stageBaseManager.HideWade();
+    }
+
+    // WIN UI logic
+    void ShowWinPanel()
+    {
+        if (winPanel != null)
+            winPanel.SetActive(true);
+
+        if (scoreText != null)
+            scoreText.text = "Total Score: " + StageScoreManager.Instance.GetPoints();
+
+        int score = StageScoreManager.Instance.GetPoints();
+        int stars = CalculateStars(score);
+
+        // Enable only the number of stars earned
+        for (int i = 0; i < starImages.Length; i++)
+        {
+            if (starImages[i] != null)
+                starImages[i].gameObject.SetActive(i < stars);
+        }
+    }
+
+
+    // Adjust these thresholds to your own scoring system
+    int CalculateStars(int score)
+    {
+        if (score >= 250) return 3;
+        if (score >= 150) return 2;
+        if (score >= 50) return 1;
+        return 0;
     }
 }
