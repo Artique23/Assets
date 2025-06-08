@@ -4,8 +4,12 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 
-public class Stage1TutorialManager : MonoBehaviour
+public class Stage1TutorialManager : StageBaseManager
 {
+    [Header("Wade Dialogue UI (Image and Text only)")]
+    public GameObject wadeImage;      // Assign Wade's image GameObject
+    public TMP_Text wadeText;         // Assign Wade's TMP_Text
+
     [Header("UI & References")]
     public CarControls carControls; // Assign in Inspector
     public Button acceleratorButton;
@@ -14,12 +18,8 @@ public class Stage1TutorialManager : MonoBehaviour
     public GameObject[] allOtherUIButtons;
 
     [Header("Gear Shift UI (Slider Setup)")]
-    public Slider gearShiftSlider;             // Assign your gear shift slider here
-    public Image gearShiftImage;               // Assign slider's background or handle image here (for highlighting)
-
-    [Header("Wade Dialogue UI")]
-    public GameObject wadePopupPanel;
-    public TMP_Text wadeText;
+    public Slider gearShiftSlider;
+    public Image gearShiftImage;
 
     [Header("Tutorial Settings")]
     public float moveDistanceForTutorial = 2.0f;
@@ -29,7 +29,6 @@ public class Stage1TutorialManager : MonoBehaviour
     private bool brakingComplete = false;
     private bool turningComplete = false;
 
-    // NEW: Gear tutorial tracking
     private int lastGearIndex = -1;
 
     public TMP_Text scoreText; // Assign in Inspector
@@ -41,10 +40,16 @@ public class Stage1TutorialManager : MonoBehaviour
         "<b>D</b> = Drive (move forward)"
     };
 
+    // (Optional) Lock to disable dialog after tutorial, if needed
+    private bool dialogLocked = false;
+
     void Start()
     {
         carControls.carPoweredOn = true;
         HideAllControls();
+        // Hide Wade image and text at the start
+        if (wadeImage != null) wadeImage.SetActive(false);
+        if (wadeText != null) wadeText.gameObject.SetActive(false);
         StartCoroutine(RunTutorialSequence());
     }
 
@@ -53,7 +58,6 @@ public class Stage1TutorialManager : MonoBehaviour
         if (scoreText != null)
             scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
     }
-
 
     void HideAllControls()
     {
@@ -66,15 +70,28 @@ public class Stage1TutorialManager : MonoBehaviour
             btn.SetActive(false);
     }
 
-    public void ShowWade(string text)
+    public override void ShowWade(string text)
     {
-        wadePopupPanel.SetActive(true);
-        wadeText.text = text;
+        if (dialogLocked) return;
+        if (wadeImage != null) wadeImage.SetActive(true);
+        if (wadeText != null)
+        {
+            wadeText.gameObject.SetActive(true);
+            wadeText.text = text;
+        }
     }
 
-    public void HideWade()
+    public override void HideWade()
     {
-        wadePopupPanel.SetActive(false);
+        if (wadeImage != null) wadeImage.SetActive(false);
+        if (wadeText != null) wadeText.gameObject.SetActive(false);
+    }
+
+    // Optionally lock dialog after tutorial, if desired
+    public void EndTutorial()
+    {
+        dialogLocked = true;
+        HideWade();
     }
 
     void HighlightButton(Selectable btn)
@@ -143,17 +160,13 @@ public class Stage1TutorialManager : MonoBehaviour
 
         HighlightImage(gearShiftImage);
 
-        // Initialize Wade popup for the current gear
         lastGearIndex = Mathf.RoundToInt(gearShiftSlider.value);
         ShowGearHint(lastGearIndex);
 
-        // Listen for slider changes to show the hint for each gear
         gearShiftSlider.onValueChanged.AddListener(OnGearSliderValueChanged);
 
-        // Wait until player moves to D (3)
         yield return new WaitUntil(() => gearShiftSlider != null && Mathf.Approximately(gearShiftSlider.value, 3));
 
-        // Remove listener after tutorial step
         gearShiftSlider.onValueChanged.RemoveListener(OnGearSliderValueChanged);
 
         UnhighlightImage(gearShiftImage);
@@ -226,6 +239,8 @@ public class Stage1TutorialManager : MonoBehaviour
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(true);
 
+        // If you want to prevent any further dialog after tutorial:
+        // EndTutorial();
     }
 
     IEnumerator CheckStopped()
