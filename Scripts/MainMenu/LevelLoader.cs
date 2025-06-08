@@ -46,6 +46,12 @@ public class LevelLoader : MonoBehaviour
         Debug.Log("Loaded Level 5...");
         SceneManager.LoadScene("Level5Scene");
     }
+    
+    public void LoadChallengeMode()
+    {
+        Debug.Log("Loaded Challenge Mode...");
+        SceneManager.LoadScene("Challenge Mode 1");
+    }
     // End for LEVELS Loading Scenes Code
 
     // QUIZ Loading Scenes Code
@@ -54,12 +60,12 @@ public class LevelLoader : MonoBehaviour
     {
         // Find the MenusUIScript to get the current difficulty
         MenusUIScript menuUI = FindObjectOfType<MenusUIScript>();
-        
+
         if (menuUI != null)
         {
             // Get the current selected difficulty
             int difficulty = menuUI.currentSelectedDifficulty;
-            
+
             // Load the appropriate quiz based on difficulty
             switch (difficulty)
             {
