@@ -54,6 +54,22 @@ public class GameManagerSaveAndLoad : MonoBehaviour
     }
     #endregion
 
+    #region Game Management Methods
+    // Function to exit the game - can be connected to a UI button
+    public void ExitGame()
+    {
+        Debug.Log("Exiting game...");
+        
+#if UNITY_EDITOR
+        // If running in editor, stop play mode
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        // If running in a build, quit the application
+        Application.Quit();
+#endif
+    }
+    #endregion
+
     #region Testing methods
     // For testing only
     public void ResetGame()
