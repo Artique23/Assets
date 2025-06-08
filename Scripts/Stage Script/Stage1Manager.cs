@@ -239,20 +239,19 @@ public class Stage1TutorialManager : StageBaseManager
         foreach (var btn in allOtherUIButtons)
             btn.SetActive(true);
 
-        // If you want to prevent any further dialog after tutorial:
-        // EndTutorial();
-    }
 
-    IEnumerator CheckStopped()
-    {
-        Rigidbody rb = carControls.GetComponent<Rigidbody>();
-        if (rb == null) yield break;
-        yield return new WaitUntil(() => rb.velocity.magnitude < 0.3f);
-        brakingComplete = true;
-    }
 
-    bool IsNearTurnPoint()
-    {
-        return Vector3.Distance(carControls.transform.position, carStartPos) > 15.0f;
+        IEnumerator CheckStopped()
+        {
+            Rigidbody rb = carControls.GetComponent<Rigidbody>();
+            if (rb == null) yield break;
+            yield return new WaitUntil(() => rb.velocity.magnitude < 0.3f);
+            brakingComplete = true;
+        }
+
+        bool IsNearTurnPoint()
+        {
+            return Vector3.Distance(carControls.transform.position, carStartPos) > 15.0f;
+        }
     }
 }
