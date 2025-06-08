@@ -89,7 +89,15 @@ public class LevelLoader : MonoBehaviour
     }
     public void LoadMainMenu()
     {
-        Debug.Log("Returning to Main Menu...");
+        // Reset lighting parameters before returning to main menu
+        RenderSettings.fog = false;  // Turn off any fog
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;  // Reset ambient mode
+        
+        // Force clean up resources to prevent lighting artifacts
+        Resources.UnloadUnusedAssets();
+        System.GC.Collect();
+        
+        // Now load the main menu with the transition
         StartCoroutine(LoadLevel("MainMenuScene"));
     }
     // Fix the other quiz loading methods to use the animation coroutine

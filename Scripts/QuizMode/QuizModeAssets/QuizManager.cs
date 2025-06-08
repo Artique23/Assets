@@ -96,6 +96,22 @@ public class QuizManager : MonoBehaviour
     [Header("Pause Controls")]
 public Button pauseButton; // Pause button for Quiz mode
 
+    // Add these fields to the QuizManager class
+    [Header("Instruction Panel")]
+    public GameObject instructionPanel;
+    public GameObject instructionLabelContainer; // Container GameObject for the label
+    public GameObject instructionTextContainer; // Container GameObject for instructions
+    public Button startQuizButton;
+    public float instructionFadeDuration = 0.5f;
+    public float instructionDelayBetweenElements = 0.3f;
+
+    // Track if the quiz has started
+    private bool quizStarted = false;
+
+    // Add this field to your QuizManager class
+    [Header("Panel Movement")]
+public PanelMovement panelMovementScript;
+
     private void Start()
     {
         totalQuestionsCount = QnA.Count;
@@ -115,15 +131,159 @@ public Button pauseButton; // Pause button for Quiz mode
         // Set initial score text
         ScoreText.text = "Score: " + scoreCount;
 
-        // Start the quiz
-        generateQuestion();
+        // Show the instruction panel instead of starting the quiz immediately
+        ShowInstructionPanel();
 
-                // Register pause button with PauseManager
-    PauseManager pauseManager = FindObjectOfType<PauseManager>();
-    if (pauseManager != null && pauseButton != null)
-    {
-        pauseManager.RegisterPauseButton(pauseButton);
+        // Register pause button with PauseManager
+        PauseManager pauseManager = FindObjectOfType<PauseManager>();
+        if (pauseManager != null && pauseButton != null)
+        {
+            pauseManager.RegisterPauseButton(pauseButton);
+        }
     }
+
+    // Add this method to show the instruction panel
+    private void ShowInstructionPanel()
+    {
+        // Hide the quiz panel initially
+        if (quizPanel != null)
+        {
+            quizPanel.SetActive(false);
+        }
+
+        // Show instruction panel
+        if (instructionPanel != null)
+        {
+            instructionPanel.SetActive(true);
+            
+            // Set up button click event
+            if (startQuizButton != null)
+            {
+                startQuizButton.onClick.RemoveAllListeners();
+                startQuizButton.onClick.AddListener(StartQuiz);
+                
+                // Hide button initially (will be faded in)
+                CanvasGroup buttonGroup = startQuizButton.GetComponent<CanvasGroup>();
+                if (buttonGroup == null)
+                    buttonGroup = startQuizButton.gameObject.AddComponent<CanvasGroup>();
+                buttonGroup.alpha = 0;
+                buttonGroup.interactable = false;
+            }
+            
+            // Ensure all instruction elements have CanvasGroups
+            EnsureInstructionElementsHaveCanvasGroups();
+            
+            // Hide all elements initially
+            SetInstructionElementsAlpha(0);
+            
+            // Start animation sequence
+            StartCoroutine(AnimateInstructionPanel());
+        }
+    }
+
+    // Add this method to start the quiz when the start button is clicked
+    public void StartQuiz()
+    {
+        // Set quiz started flag
+        quizStarted = true;
+        
+        // Hide instruction panel
+        if (instructionPanel != null)
+        {
+            instructionPanel.SetActive(false);
+        }
+        
+        // Show quiz panel
+        if (quizPanel != null)
+        {
+            quizPanel.SetActive(true);
+        }
+        
+        // Generate first question
+        generateQuestion();
+    }
+
+    // Add this method to animate the instruction panel elements
+    private IEnumerator AnimateInstructionPanel()
+    {
+        // Wait a moment before starting animations
+        yield return new WaitForSeconds(0.5f);
+        
+        // 1. Fade in the label container first
+        if (instructionLabelContainer != null)
+        {
+            CanvasGroup labelGroup = instructionLabelContainer.GetComponent<CanvasGroup>();
+            if (labelGroup == null)
+                labelGroup = instructionLabelContainer.AddComponent<CanvasGroup>();
+            
+            // Make sure alpha is 0 to start
+            labelGroup.alpha = 0;
+            labelGroup.DOFade(1, instructionFadeDuration).SetEase(fadeEaseType);
+            yield return new WaitForSeconds(instructionFadeDuration + instructionDelayBetweenElements);
+        }
+        
+        // 2. Fade in the instruction text container
+        if (instructionTextContainer != null)
+        {
+            CanvasGroup textGroup = instructionTextContainer.GetComponent<CanvasGroup>();
+            if (textGroup == null)
+                textGroup = instructionTextContainer.AddComponent<CanvasGroup>();
+            
+            // Make sure alpha is 0 to start
+            textGroup.alpha = 0;
+            textGroup.DOFade(1, instructionFadeDuration).SetEase(fadeEaseType);
+            yield return new WaitForSeconds(instructionFadeDuration + instructionDelayBetweenElements);
+        }
+        
+        // 3. Fade in the start button - Fixed approach
+        if (startQuizButton != null)
+        {
+            // Get or add the CanvasGroup component
+            CanvasGroup buttonGroup = startQuizButton.GetComponent<CanvasGroup>();
+            if (buttonGroup == null)
+                buttonGroup = startQuizButton.gameObject.AddComponent<CanvasGroup>();
+            
+            // Ensure button starts completely invisible and non-interactive
+            buttonGroup.alpha = 0;
+            buttonGroup.interactable = false;
+            buttonGroup.blocksRaycasts = false;
+            
+            // Wait a frame to ensure UI updates
+            yield return null;
+            
+            // Use DOTween to fade in, set this to a variable so we can track when it completes
+            Tween fadeTween = buttonGroup.DOFade(1, instructionFadeDuration)
+                .SetEase(fadeEaseType);
+            
+            // Wait for the animation to complete
+            yield return fadeTween.WaitForCompletion();
+            
+            // Make button interactive after animation completes
+            buttonGroup.interactable = true;
+            buttonGroup.blocksRaycasts = true;
+            
+            Debug.Log("Start button fade animation completed");
+        }
+    }
+
+    // Helper methods for instruction panel
+    private void EnsureInstructionElementsHaveCanvasGroups()
+    {
+        if (instructionLabelContainer != null && instructionLabelContainer.GetComponent<CanvasGroup>() == null)
+            instructionLabelContainer.AddComponent<CanvasGroup>();
+            
+        if (instructionTextContainer != null && instructionTextContainer.GetComponent<CanvasGroup>() == null)
+            instructionTextContainer.AddComponent<CanvasGroup>();
+            
+        if (startQuizButton != null && startQuizButton.GetComponent<CanvasGroup>() == null)
+            startQuizButton.gameObject.AddComponent<CanvasGroup>();
+    }
+
+    private void SetInstructionElementsAlpha(float alpha)
+    {
+        SetElementAlpha(instructionLabelContainer, alpha);
+        SetElementAlpha(instructionTextContainer, alpha);
+        SetElementAlpha(startQuizButton?.gameObject, alpha);
     }
 
     // Call this method to start the timer for a question
@@ -754,6 +914,10 @@ public Button pauseButton; // Pause button for Quiz mode
 
     void generateQuestion()
     {
+        // Don't start timer if quiz hasn't officially started
+        if (!quizStarted)
+            return;
+    
         if (answeredQuestionsCount >= maximumQuestions)
         {
             // End the quiz if we've answered enough questions
@@ -834,6 +998,12 @@ public Button pauseButton; // Pause button for Quiz mode
     public void ResumeQuiz()
     {
         // Activate quiz panel (the MixAndMatch script will handle this)
+
+        // Restart panel movement animation if it exists
+        if (panelMovementScript != null)
+        {
+            panelMovementScript.StartContinuousMovement();
+        }
 
         // Continue with the next question
         generateQuestion();
