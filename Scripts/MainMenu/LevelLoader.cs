@@ -24,12 +24,12 @@ public class LevelLoader : MonoBehaviour
     public void LoadLevel1()
     {
         Debug.Log("Loaded Level 1...");
-        SceneManager.LoadScene("Level1Scene");
+        SceneManager.LoadScene("Stage 1");
     }
     public void LoadLevel2()
     {
         Debug.Log("Loaded Level 2...");
-        SceneManager.LoadScene("Level2Scene");
+        SceneManager.LoadScene("Stage 2");
     }
     public void LoadLevel3()
     {
