@@ -638,250 +638,328 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   QnA:
-  - Question: What should you do when approaching a pedestrian crossing?
+  - Question: What is the correct order of priority at a four-way intersection when
+      all vehicles arrive at the same time?
     Answers:
-    - Slow down and prepare to stop
-    - Speed up and pass quickly
-    - Ignore pedestrians
-    - Blow your horn continuously
+    - Vehicle on the right goes first
+    - Vehicle on the left goes first
+    - Vehicle that honks first goes
+    - Largest vehicle proceeds first
     CorrectAnswer: 1
     hasImage: 0
     questionImage: {fileID: 0}
-    correctExplanation: Correct! Slowing down gives pedestrians the right of way
-      and keeps everyone safe.
-    incorrectExplanation: Wrong. You must slow down to give pedestrians a chance
-      to cross safely.
-  - Question: What is the meaning of a red traffic light?
+    correctExplanation: "That's right\u2014vehicles to your right have the right
+      of way in this situation."
+    incorrectExplanation: "The correct answer is\u2014vehicles to your right always
+      have the priority when arriving at the same time.\n\n"
+  - Question: When is overtaking on the right allowed?
     Answers:
-    - Stop
-    - Go
-    - Slow down
-    - Proceed with caution
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: A red light always means stop.
-    incorrectExplanation: Running a red light is dangerous and illegal.
-  - Question: When should you use your seatbelt?
-    Answers:
-    - At all times while driving
-    - Only on long trips
-    - Only when police are around
-    - Only on highways
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Seatbelts must always be worn while driving.
-    incorrectExplanation: Wrong. Seatbelts should be used every time you drive, no
-      matter how short the trip.
-  - Question: What does a yellow traffic light mean?
-    Answers:
-    - Prepare to stop
-    - Speed up
-    - Stop immediately
-    - Go faster to beat the red light
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Yellow means slow down and prepare to stop.
-    incorrectExplanation: Wrong. Yellow is a warning that the light is about to turn
-      red.
-  - Question: When parking uphill without a curb, which way should your wheels face?
-    Answers:
-    - To the right
-    - To the left
-    - Straight ahead
-    - "Doesn\u2019t matter"
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Turning your wheels right prevents rolling into
-      traffic.
-    incorrectExplanation: Wrong. Wheels must face right to keep your vehicle from
-      rolling.
-  - Question: What is the minimum age to get a student permit in the Philippines?
-    Answers:
-    - 16 years old
-    - 18 years old
-    - 21 years old
-    - 25 years old
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! You can apply for a student permit at age 16.
-    incorrectExplanation: Wrong. The minimum age for a student permit is 16.
-  - Question: What should you do before turning left at an intersection?
-    Answers:
-    - 'Signal and check for incoming traffic '
-    - Turn immediately
-    - Stop in the middle of the road
-    - Blow your horn
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Always signal and yield to oncoming vehicles before
-      turning left.
-    incorrectExplanation: "Wrong. You must signal and make sure it\u2019s safe before
-      turning left."
-  - Question: What does a no parking sign mean?
-    Answers:
-    - You are not allowed to park
-    - You can stop anytime
-    - You can wait in the car
-    - You can park for 5 minutes
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! A no parking sign means you must not park at all.
-    incorrectExplanation: Wrong. You cannot stop or wait where no parking is allowed.
-  - Question: What does a flashing red traffic light mean?
-    Answers:
-    - Stop and proceed when safe
-    - Speed up
-    - Ignore it
-    - Go without stopping
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: "Correct! A flashing red light means stop first, then go
-      when it\u2019s safe."
-    incorrectExplanation: Wrong. You must stop fully at a flashing red light.
-  - Question: What is the proper hand signal for turning right?
-    Answers:
-    - Left arm bent upward
-    - Left arm straight out
-    - Right arm straight out
-    - Left arm pointing down
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Bending your left arm upward signals a right turn.
-    incorrectExplanation: Wrong. The proper right turn signal is left arm bent upward.
-  - Question: What should you do when an emergency vehicle approaches with flashing
-      lights and sirens?
-    Answers:
-    - Pull over and stop
-    - Drive faster
-    - Stop in the middle of the road
-    - Follow the emergency vehicle
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: ' Correct! Give way to emergency vehicles by pulling over
-      safely.'
-    incorrectExplanation: Wrong. Always move aside for ambulances, fire trucks, or
-      police vehicles.
-  - Question: What is the meaning of a circular road sign with a red border and white
-      background?
-    Answers:
-    - Prohibition or restriction
-    - Warning
-    - Direction
-    - Pedestrian sign
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! These signs indicate something is not allowed or
-      restricted.
-    incorrectExplanation: "Wrong. These signs usually mean a restriction, such as
-      \u201CNo Entry\u201D or \u201CNo U-Turn.\u201D"
-  - Question: What is the first thing you should do when entering a car?
-    Answers:
-    - Put on your seatbelt
-    - Start the engine
-    - Check your phone
-    - Adjust the radio
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: "Correct! Seatbelt first before anything else\u2014it\u2019s
-      a life-saving habit."
-    incorrectExplanation: Wrong. Always buckle up before starting the car.
-  - Question: What does a triangle road sign with a red border mean?
-    Answers:
-    - Yield
-    - Stop
-    - Go
-    - Detour
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! A triangle sign with a red border is a yield sign.
-    incorrectExplanation: ' Wrong. This type of sign tells drivers to yield.'
-  - Question: What should you do when backing your vehicle?
-    Answers:
-    - Look behind you
-    - Use only mirrors
-    - Speed up
-    - Blow the horn repeatedly
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: ' Correct! Always look back over your shoulder while reversing.'
-    incorrectExplanation: "Wrong. Relying only on mirrors isn\u2019t enough\u2014look
-      behind you."
-  - Question: What is the maximum speed on open roads for cars and motorcycles (unless
-      otherwise posted)
-    Answers:
-    - 80 kph
-    - 100 kph
-    - 60 kph
-    - 40 kph
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! 80 kph is the usual limit for open roads unless
-      otherwise indicated.
-    incorrectExplanation: Wrong. The speed limit for open roads is generally 80 kph.
-  - Question: ' What is the meaning of a solid white line on the road?'
-    Answers:
-    - Do not change lanes
-    - You can overtake
-    - Drive fast
-    - Pedestrian crossing ahead
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Solid white lines mean lane changes are discouraged
-      or prohibited.
-    incorrectExplanation: "Wrong. You should stay in your lane when there\u2019s
-      a solid white line."
-  - Question: What should you do if your tire suddenly blows out while driving?
-    Answers:
-    - Hold the wheel firmly and slow down
-    - Step on the gas
-    - 'Brake hard immediately  '
-    - Swerve quickly
-    CorrectAnswer: 1
-    hasImage: 0
-    questionImage: {fileID: 0}
-    correctExplanation: Correct! Stay calm, keep control, and slow down gradually.
-    incorrectExplanation: "Wrong. Don\u2019t panic\u2014firm steering and gentle
-      braking is key."
-  - Question: When may you use a mobile phone while driving?
-    Answers:
-    - Only when using hands-free devices
-    - Anytime
-    - When stopped at a red light
+    - 'When the vehicle ahead is turning left '
+    - On bridges
+    - When the road is wide
     - When traffic is light
     CorrectAnswer: 1
     hasImage: 0
     questionImage: {fileID: 0}
-    correctExplanation: Correct! Hands-free devices are the only safe and legal option.
-    incorrectExplanation: Wrong. Using a phone while driving without hands-free is
-      dangerous and illegal.
-  - Question: When driving in fog, what lights should you use?
+    correctExplanation: "Correct\u2014overtaking on the right is only permitted if
+      the vehicle ahead is turning left."
+    incorrectExplanation: "The correct answer is\u2014only overtake on the right
+      if the vehicle ahead is turning left and it is safe.\n\n"
+  - Question: What is the meaning of a yellow traffic light?
     Answers:
-    - Low beam headlights
-    - High beam headlights
-    - Hazard lights only
-    - No lights
+    - Prepare to stop
+    - Speed up
+    - Stop immediately
+    - Turn left
     CorrectAnswer: 1
     hasImage: 0
     questionImage: {fileID: 0}
-    correctExplanation: Correct! Low beams help you see better in fog without glare.
-    incorrectExplanation: "Wrong. Use low beams\u2014high beams reflect off fog and
-      make vision worse."
+    correctExplanation: "Correct\u2014a yellow light means prepare to stop if it's
+      safe to do so."
+    incorrectExplanation: "The correct answer is \u2014a yellow light signals you
+      to slow down and prepare to stop.\n\n"
+  - Question: When should you use your hazard lights?
+    Answers:
+    - When your vehicle is disabled or causing obstruction
+    - While driving slowly
+    - While parking
+    - During normal driving
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Yes\u2014hazard lights are used during emergencies or when
+      your car is causing an obstruction."
+    incorrectExplanation: "The correct answer is\u2014hazard lights signal an emergency
+      or temporary obstruction.\n\n"
+  - Question: What does a continuous solid white line mean?
+    Answers:
+    - No lane changing allowed
+    - Pedestrian crossing
+    - Overtaking is allowed
+    - Left turn only
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014you must stay in your lane and avoid crossing
+      a solid white line."
+    incorrectExplanation: "The correct answer is A\u2014solid white lines mean no
+      lane changes are allowed."
+  - Question: If your vehicle starts to skid on a wet road, what should you do?
+    Answers:
+    - Turn your steering wheel in the direction of the skid
+    - Brake hard
+    - Steer in the opposite direction
+    - Accelerate quickly
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Right\u2014steering into the skid helps you regain control."
+    incorrectExplanation: "The correct answer is \u2014you should steer in the direction
+      of the skid to recover.  "
+  - Question: What does this sign mean?
+    Answers:
+    - Crossroad ahead
+    - No entry
+    - Stop
+    - One-way only
+    CorrectAnswer: 1
+    hasImage: 1
+    questionImage: {fileID: 21300000, guid: 220422f90724e144da7b3cf7b55d958f, type: 3}
+    correctExplanation: "That\u2019s correct\u2014it means a crossroad is ahead,
+      so be alert."
+    incorrectExplanation: "The correct answer is\u2014this sign warns of a crossroad
+      ahead."
+  - Question: How far before a turn should you activate your signal light?
+    Answers:
+    - 30 meters
+    - 5 meters
+    - 10 meters
+    - Only at the corner
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014signal at least 30 meters before making a turn."
+    incorrectExplanation: "The correct answer is A\u2014signal 30 meters before your
+      intended turn."
+  - Question: When driving near schools, what should you do?
+    Answers:
+    - Slow down and watch for children
+    - Honk continuously
+    - Turn on hazard lights
+    - Maintain regular speed
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "That\u2019s right\u2014school zones require reduced speed
+      and extra caution."
+    incorrectExplanation: "The correct answer is\u2014slow down and be alert in school
+      zones."
+  - Question: Which lane should you use when driving at a slow speed on a multi-lane
+      road?
+    Answers:
+    - Rightmost lane
+    - Leftmost lane
+    - Any lane
+    - Center lane
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014the rightmost lane is for slower traffic."
+    incorrectExplanation: " The correct answer is\u2014use the rightmost lane when
+      driving slowly."
+  - Question: What does this sign mean?
+    Answers:
+    - No entry for trucks
+    - Cars and motorcycles allowed
+    - No entry for motor vehicles
+    - Two-way traffic
+    CorrectAnswer: 1
+    hasImage: 1
+    questionImage: {fileID: 21300000, guid: b3d1d5c583ce38f49ac0e3d78c6e4a25, type: 3}
+    correctExplanation: "Correct\u2014this sign prohibits truck vehicles from entering."
+    incorrectExplanation: "The correct answer is C\u2014it means no entry for any
+      truck vehicles."
+  - Question: When may you legally drive through a red traffic light?
+    Answers:
+    - "When making a right turn with no \u201Cno right turn on red\u201D sign"
+    - At midnight
+    - If you're in a hurry
+    - If the intersection is empty
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 21300000, guid: b3d1d5c583ce38f49ac0e3d78c6e4a25, type: 3}
+    correctExplanation: "Correct\u2014you can turn right on red if it's safe and
+      allowed."
+    incorrectExplanation: "The correct answer is\u2014you may turn right on red when
+      permitted and safe.\n\n"
+  - Question: "What does the term \u201Cdefensive driving\u201D mean?"
+    Answers:
+    - Being prepared for the mistakes of others
+    - Always driving slowly
+    - Reacting aggressively to bad drivers
+    - Stopping often
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Yes\u2014defensive driving means staying alert and anticipating
+      risks."
+    incorrectExplanation: "The correct answer is \u2014it\u2019s about staying aware
+      and prepared for unexpected hazards.\n\n"
+  - Question: What is hydroplaning?
+    Answers:
+    - Losing traction on a wet road
+    - Changing tires
+    - Braking while turning
+    - Driving through fog
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014hydroplaning happens when your tires lose grip
+      due to water."
+    incorrectExplanation: "The correct answer is\u2014hydroplaning means your tires
+      are skimming over water.\n\n"
+  - Question: "What\u2019s the first thing you should do before driving away?"
+    Answers:
+    - Check mirrors and fasten your seatbelt
+    - Play music
+    - Adjust air conditioning
+    - Wave at others
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Right\u2014always check your mirrors and buckle up before
+      driving."
+    incorrectExplanation: "The correct answer is\u2014safety checks and buckling
+      up come first."
+  - Question: What is the correct response when an ambulance approaches with its
+      siren on?
+    Answers:
+    - Move to the right and let it pass
+    - Speed up to stay ahead
+    - Continue driving as usual
+    - Stop in the middle of the road
+    CorrectAnswer: 0
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014give way by moving right and letting the emergency
+      vehicle through."
+    incorrectExplanation: "The correct answer is\u2014emergency vehicles must always
+      be given clear passage.\n\n"
+  - Question: 'When driving at night, you should dim your headlights when:'
+    Answers:
+    - Approaching another vehicle
+    - Entering a tunnel
+    - Driving uphill
+    - Your windshield is dirty
+    CorrectAnswer: 0
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "That\u2019s right\u2014dim lights help avoid blinding oncoming
+      drivers."
+    incorrectExplanation: "The correct answer is A\u2014always dim headlights when
+      facing another vehicle."
+  - Question: What is the effect of drinking alcohol before driving?
+    Answers:
+    - It reduces your reaction time and decision-making ability
+    - It helps you focus
+    - It improves confidence
+    - It increases vision at night
+    CorrectAnswer: 0
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014alcohol impairs your ability to drive safely."
+    incorrectExplanation: "The correct answer is A\u2014alcohol delays reaction time
+      and judgment."
+  - Question: If a police officer directs you to go through a red light, what should
+      you do?
+    Answers:
+    - "Follow the officer\u2019s instructions"
+    - Wait for the green light
+    - Honk at the officer
+    - Ignore and stop
+    CorrectAnswer: 0
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Yes\u2014an officer\u2019s direction overrides traffic lights."
+    incorrectExplanation: "The correct answer is A\u2014follow traffic authorities
+      even if signals say otherwise.\n\n"
+  - Question: What is the legal consequence of driving without a valid license in
+      the Philippines?
+    Answers:
+    - You may be fined and your vehicle impounded
+    - You will be given a warning only
+    - You will be allowed to drive with a receipt
+    - Nothing will happen
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014driving without a license results in penalties
+      and possible impounding."
+    incorrectExplanation: "The correct answer is\u2014there are legal penalties for
+      driving unlicensed."
+  - Question: What does this sign mean?
+    Answers:
+    - No entry
+    - One-way street
+    - Stop sign ahead
+    - Do not turn
+    CorrectAnswer: 1
+    hasImage: 1
+    questionImage: {fileID: 21300000, guid: d71d84bcb348fd84daac15b4eb5c8c54, type: 3}
+    correctExplanation: "Correct\u2014driving without a license results in penalties
+      and possible impounding."
+    incorrectExplanation: "The correct answer is\u2014there are legal penalties for
+      driving unlicensed."
+  - Question: When can you use the shoulder of the road to overtake?
+    Answers:
+    - Never, it is illegal and dangerous
+    - When traffic is slow
+    - "When there\u2019s no one else around"
+    - When the other vehicle is large
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014overtaking on the shoulder is unsafe and not
+      allowed."
+    incorrectExplanation: "The correct answer is\u2014shoulders are not meant for
+      overtaking."
+  - Question: How often should you check your side and rearview mirrors while driving?
+    Answers:
+    - Every few seconds
+    - Only before changing lanes
+    - Only when parking
+    - Only on highways
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "That\u2019s right\u2014frequent mirror checks help maintain
+      awareness."
+    incorrectExplanation: "The correct answer is\u2014you need to check mirrors regularly
+      for safety.\n\n"
+  - Question: What should you do when you're feeling drowsy while driving?
+    Answers:
+    - Pull over and rest
+    - Open the windows
+    - Play loud music
+    - Keep driving faster
+    CorrectAnswer: 1
+    hasImage: 0
+    questionImage: {fileID: 0}
+    correctExplanation: "Correct\u2014rest is the safest option when feeling drowsy."
+    incorrectExplanation: "The correct answer is\u2014drowsiness reduces alertness
+      and reaction time.\n\n"
+  - Question: What does this sign mean?
+    Answers:
+    - Parking area
+    - Pedestrian crossing
+    - Private property
+    - Pay station ahead
+    CorrectAnswer: 1
+    hasImage: 1
+    questionImage: {fileID: 21300000, guid: f4790573e628744418592d0e34ccfad1, type: 3}
+    correctExplanation: "Correct\u2014this sign designates an area for vehicle parking."
+    incorrectExplanation: "The correct answer is\u2014it means a parking area is
+      available."
   options:
   - {fileID: 960114658}
   - {fileID: 374579339}
@@ -899,7 +977,7 @@ MonoBehaviour:
   quizPanel: {fileID: 1241865830}
   TimerText: {fileID: 1579717196}
   ScoreText: {fileID: 324727700}
-  questionTime: 15
+  questionTime: 12
   summaryPanel: {fileID: 37612942}
   FinalScore: {fileID: 1732685511}
   TotalAnsweredQuestions: {fileID: 1956940399}
@@ -921,9 +999,9 @@ MonoBehaviour:
   delayBetweenElements: 0.2
   slideEaseType: 27
   fadeEaseType: 6
-  star1Threshold: 300
-  star2Threshold: 600
-  star3Threshold: 1000
+  star1Threshold: 500
+  star2Threshold: 1000
+  star3Threshold: 1600
   correctButtonScaleMultiplier: 0.8
   buttonAnimationDuration: 0.05
   buttonAnimationEase: 27
