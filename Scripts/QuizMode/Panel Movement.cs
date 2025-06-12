@@ -23,8 +23,9 @@ public class PanelMovement : MonoBehaviour
     
     private Vector2 startPosition;
     private Sequence movementSequence;
+    private bool isInitialized = false;
     
-    void Start()
+    void Awake()
     {
         // If panelRect not assigned, use this object's RectTransform
         if (panelRect == null)
@@ -32,9 +33,31 @@ public class PanelMovement : MonoBehaviour
             
         // Store initial position
         startPosition = panelRect.anchoredPosition;
-        
-        // Start the continuous animation
-        StartContinuousMovement();
+        isInitialized = true;
+    }
+    
+    void OnEnable()
+    {
+        // Start the animation whenever the object becomes active
+        if (isInitialized)
+            StartContinuousMovement();
+        else
+        {
+            // First-time initialization if not done in Awake
+            if (panelRect == null)
+                panelRect = GetComponent<RectTransform>();
+                
+            startPosition = panelRect.anchoredPosition;
+            isInitialized = true;
+            StartContinuousMovement();
+        }
+    }
+    
+    void Start()
+    {
+        // Ensure the animation is started on first run
+        if (!movementSequence.IsActive())
+            StartContinuousMovement();
     }
     
     public void StartContinuousMovement()
