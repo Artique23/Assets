@@ -7,6 +7,7 @@ using DG.Tweening; // Add DOTween namespace
 
 public class InventorySlot : MonoBehaviour, IDropHandler
 {
+    public MixAndMatchSFX sfxManager;
     public Image slotImage;
     public bool isWinningSlot = false;
     public string expectedSignName = ""; // The name of the sign this slot expects (set by WinningInventory)
@@ -15,14 +16,15 @@ public class InventorySlot : MonoBehaviour, IDropHandler
     public float shakeDuration = 0.5f;
     public float shakeStrength = 10f;
     public int shakeVibrato = 10;
-    
+
     private void Awake()
     {
         if (slotImage == null)
             slotImage = GetComponent<Image>();
-            
+
         if (slotImage != null)
             slotImage.raycastTarget = true;
+        sfxManager = FindObjectOfType<MixAndMatchSFX>();
     }
     
     public void OnDrop(PointerEventData eventData)
@@ -31,20 +33,25 @@ public class InventorySlot : MonoBehaviour, IDropHandler
         
         DraggableItem draggableItem = eventData.pointerDrag.GetComponent<DraggableItem>();
         if (draggableItem == null) return;
-        
+
         // If this is a winning slot, check if the sign matches what's expected
         if (isWinningSlot && !string.IsNullOrEmpty(expectedSignName))
         {
             string signName = draggableItem.gameObject.name;
             if (signName.EndsWith("(Clone)"))
                 signName = signName.Substring(0, signName.Length - 7);
-                
+
             // If wrong sign, don't accept it and shake the slot
             if (signName != expectedSignName)
             {
                 Debug.Log($"Wrong sign! Expected {expectedSignName}, got {signName}");
                 ShakeSlot();
+                sfxManager.PlayWrong();
                 return;
+            }
+            else
+            {
+                sfxManager.PlayCorrect();
             }
         }
         
