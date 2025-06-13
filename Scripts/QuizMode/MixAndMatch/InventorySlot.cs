@@ -33,7 +33,20 @@ public class InventorySlot : MonoBehaviour, IDropHandler
         
         DraggableItem draggableItem = eventData.pointerDrag.GetComponent<DraggableItem>();
         if (draggableItem == null) return;
-
+        
+        // Check if this slot already contains an item (preventing stacking)
+        if (transform.childCount > 0)
+        {
+            Debug.Log("Slot already occupied - rejecting drop");
+            
+            // Shake the slot to indicate invalid drop
+            ShakeSlot();
+            
+            // Return the dragged item to its original slot
+            draggableItem.ReturnToOriginalSlot();
+            return;
+        }
+        
         // If this is a winning slot, check if the sign matches what's expected
         if (isWinningSlot && !string.IsNullOrEmpty(expectedSignName))
         {
@@ -46,7 +59,9 @@ public class InventorySlot : MonoBehaviour, IDropHandler
             {
                 Debug.Log($"Wrong sign! Expected {expectedSignName}, got {signName}");
                 ShakeSlot();
-                sfxManager.PlayWrong();
+                
+                // Return the dragged item to its original slot
+                draggableItem.ReturnToOriginalSlot();
                 return;
             }
             else
