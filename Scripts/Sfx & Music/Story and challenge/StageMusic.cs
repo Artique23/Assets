@@ -27,34 +27,47 @@ public class StageMusic : MonoBehaviour
         StartCoroutine(PlayMusicLoop());
     }
 
-    private IEnumerator PlayMusicLoop()
+   private IEnumerator PlayMusicLoop()
+{
+    // Select initial random clip
+    int newClipIndex = Random.Range(0, musicClips.Length);
+    lastClipIndex = newClipIndex;
+    AudioClip nextClip = musicClips[newClipIndex];
+
+    int nextSourceIndex = currentSourceIndex;
+    AudioSource nextSource = audioSources[nextSourceIndex];
+    nextSource.clip = nextClip;
+    nextSource.volume = 0f;
+    nextSource.Play();
+
+    StartCoroutine(FadeIn(nextSource));
+
+    yield return new WaitForSeconds(10f);
+
+    while (true)
     {
-         yield return new WaitForSeconds(10f);
-        while (true)
+        do
         {
-            // Get a random clip index that's not the same as the last
-            int newClipIndex;
-            do
-            {
-                newClipIndex = Random.Range(0, musicClips.Length);
-            } while (newClipIndex == lastClipIndex && musicClips.Length > 1);
+            newClipIndex = Random.Range(0, musicClips.Length);
+        } while (newClipIndex == lastClipIndex && musicClips.Length > 1);
 
-            lastClipIndex = newClipIndex;
-            AudioClip nextClip = musicClips[newClipIndex];
+        lastClipIndex = newClipIndex;
+        nextClip = musicClips[newClipIndex];
 
-            int nextSourceIndex = 1 - currentSourceIndex; // Alternate between 0 and 1
-            AudioSource nextSource = audioSources[nextSourceIndex];
-            nextSource.clip = nextClip;
-            nextSource.Play();
+        int newSourceIndex = 1 - currentSourceIndex;
+        AudioSource newSource = audioSources[newSourceIndex];
+        newSource.clip = nextClip;
+        newSource.volume = 0f;
+        newSource.Play();
 
-            StartCoroutine(FadeIn(nextSource));
-            StartCoroutine(FadeOut(audioSources[currentSourceIndex]));
+        StartCoroutine(FadeIn(newSource));
+        StartCoroutine(FadeOut(audioSources[currentSourceIndex]));
 
-            currentSourceIndex = nextSourceIndex;
+        currentSourceIndex = newSourceIndex;
 
-            yield return new WaitForSeconds(nextClip.length - fadeDuration);
-        }
+        yield return new WaitForSeconds(nextClip.length - fadeDuration);
     }
+}
 
     private IEnumerator FadeIn(AudioSource source)
     {
