@@ -37,9 +37,18 @@ public class CarSoundManager : MonoBehaviour
     private bool leftSignalActive = false;
     private bool rightSignalActive = false;
 
+     public static CarSoundManager Instance { get; private set; }
+
 
     void Awake()
     {
+         if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); // Prevent duplicates
+            return;
+        }
+
+        Instance = this;
 
         hornButton?.onClick.AddListener(() => PlayHorn());
         hazardButton?.onClick.AddListener(() => ToggleLoopAudio(HazardSource, ref hazardsActive));
@@ -47,6 +56,19 @@ public class CarSoundManager : MonoBehaviour
         rightSignalButton?.onClick.AddListener(() => ToggleLoopAudio(RightSignalSource, ref rightSignalActive));
         highbeamButton?.onClick.AddListener(() => ButtonSource?.PlayOneShot(ButtonClip));
 
+    }
+    public void StopAllCarSounds()
+    {
+        idleSource?.Stop();
+        hornSource?.Stop();
+        HazardSource?.Stop();
+        LeftSignalSource?.Stop();
+        RightSignalSource?.Stop();
+        ButtonSource?.Stop();
+
+        hazardsActive = false;
+        leftSignalActive = false;
+        rightSignalActive = false;
     }
 
     void Start()

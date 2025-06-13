@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class StageMusic : MonoBehaviour
 
@@ -13,6 +14,32 @@ public class StageMusic : MonoBehaviour
     private int currentSourceIndex = 0;
     private int lastClipIndex = -1;
 
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StopAllCoroutines(); // Stop the music loop and any fades
+
+        if (audioSources != null)
+        {
+            foreach (var source in audioSources)
+            {
+                if (source != null)
+                {
+                    source.Stop();
+                    source.volume = 0;
+                }
+            }
+        }
+    }
     private void Start()
     {
         // Create 2 AudioSources for crossfading
