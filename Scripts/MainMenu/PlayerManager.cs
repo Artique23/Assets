@@ -87,14 +87,18 @@ public class PlayerManager : MonoBehaviour
     
     public bool SpendCurrency(int amount)
     {
+        Debug.Log($"Attempting to spend {amount} currency. Current balance: {playerCurrency}");
+        
         // Check if player has enough money
         if (playerCurrency >= amount)
         {
             playerCurrency -= amount;
             SavePlayerData();
+            Debug.Log($"Purchase successful! New balance: {playerCurrency}");
             return true; // Purchase successful
         }
         
+        Debug.Log("Purchase failed - insufficient funds!");
         return false; // Not enough money
     }
     
@@ -241,20 +245,20 @@ public class PlayerManager : MonoBehaviour
         // Add 10 currency
         playerCurrency += 10;
         
-        // Save the data
+        // Save the data immediately
         SavePlayerData();
         
-        // Update UI if needed
+        // Find and update all GameManagerSaveAndLoad instances
         var managers = FindObjectsOfType<GameManagerSaveAndLoad>();
         foreach (var manager in managers)
         {
             if (manager != null)
             {
-                manager.SendMessage("UpdateUI", null, SendMessageOptions.DontRequireReceiver);
+                manager.UpdateUI(); // Call UpdateUI directly instead of using SendMessage
             }
         }
         
-        Debug.Log("Added 10 currency. New total: " + playerCurrency);
+        Debug.Log($"Added 10 currency. New total: {playerCurrency}");
     }
 }
 
