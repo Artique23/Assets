@@ -2893,7 +2893,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -608, y: -48}
+  m_AnchoredPosition: {x: -608, y: -73}
   m_SizeDelta: {x: -1528.8074, y: -196.26538}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &395741857
@@ -3763,9 +3763,9 @@ RectTransform:
   - {fileID: 24832721}
   m_Father: {fileID: 395741856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 189.80095, y: -266.55038}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 251.7567, y: 77.6943}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &488392756
@@ -3884,9 +3884,9 @@ RectTransform:
   - {fileID: 1484721323}
   m_Father: {fileID: 395741856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 189.80095, y: -59.574215}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 251.7567, y: 77.6943}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &497607879
@@ -6174,9 +6174,9 @@ RectTransform:
   - {fileID: 548188507}
   m_Father: {fileID: 395741856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 189.80095, y: -473.52655}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 251.7567, y: 77.6943}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &920549779
@@ -8735,7 +8735,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1238414616
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8948,7 +8948,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.94509804}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9283,7 +9283,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1341812758
 RectTransform:
   m_ObjectHideFlags: 0
