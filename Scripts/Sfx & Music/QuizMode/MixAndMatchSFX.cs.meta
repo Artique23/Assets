@@ -3,7 +3,10 @@ guid: 68522dce12188d44c9815d7da7e877f4
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - sfxSource: {fileID: 1464091186371894405, guid: 0f041b655a53f3a4092841a3538fc004, type: 3}
+  - correctClip: {fileID: 8300000, guid: 252f7d4991feb69479020579f463f926, type: 3}
+  - wrongClip: {fileID: 8300000, guid: 897f0e206af08ea4cac7dc6a969f9c56, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
