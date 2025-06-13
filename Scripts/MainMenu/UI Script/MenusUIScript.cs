@@ -33,6 +33,19 @@ public class MenusUIScript : MonoBehaviour
     [SerializeField] private CanvasGroup quizModeCanvasGroup;  // Add this line
     [SerializeField] private GameObject easyPanel, averagePanel, difficultPanel;
     [SerializeField] private Button easyButton, averageButton, difficultButton;
+
+    [Header("Settings UI")]
+    [SerializeField] private GameObject settingsPanels;
+    [SerializeField] private CanvasGroup settingsPanelsCanvasGroup;
+    [SerializeField] private GameObject controlsPanel, musicSfxPanel, qualityPanel;
+    [SerializeField] private Button controlsButton, musicSfxButton, qualityButton;
+
+    [Header("Settings Button Animation")]
+    [SerializeField] private float settingsButtonScaleDuration = 0.3f;
+    [SerializeField] public Vector3 selectedSettingsButtonScale = new Vector3(1.15f, 1.15f, 1.15f);
+    [SerializeField] public Vector3 normalSettingsButtonScale = new Vector3(0.9f, 0.9f, 0.9f);
+    [SerializeField] private Ease settingsButtonScaleEase = Ease.OutBack;
+    public int currentSelectedSettings = 0; // 0 = Controls, 1 = Music/SFX, 2 = Quality
     #endregion
 
     [Header("Difficulty Button Animation")]
@@ -169,13 +182,22 @@ public class MenusUIScript : MonoBehaviour
 
     void ShowSettingsMenu()
     {
-        Debug.Log("Main Menu is Visible...");
+        Debug.Log("Settings Menu is Visible...");
         GeneralUI.SetActive(true);
         MainMenuUI.SetActive(false);
         StartMenuUI.SetActive(false);
         StoryModeUI.SetActive(false);
         SettingsUI.SetActive(true);
         AboutUI.SetActive(false);
+
+        // Initialize settings panels
+        controlsPanel.SetActive(true);
+        musicSfxPanel.SetActive(false);
+        qualityPanel.SetActive(false);
+        
+        // Set initial button scales
+        AnimateSettingsButtonSelection(0);
+        currentSelectedSettings = 0;
     }
 
     // Show the Quiz Mode panel with fade-in animation
@@ -443,5 +465,105 @@ private void AnimateButtonSelection(int selectedIndex)
     }
 }
     
+    public void ShowControlsPanel()
+    {
+        Debug.Log("Showing Controls Panel");
+        // Switch panels
+        controlsPanel.SetActive(true);
+        musicSfxPanel.SetActive(false);
+        qualityPanel.SetActive(false);
+        
+        // Animate buttons
+        AnimateSettingsButtonSelection(0);
+        currentSelectedSettings = 0;
+    }
+
+    public void ShowMusicSfxPanel()
+    {
+        Debug.Log("Showing Music/SFX Panel");
+        controlsPanel.SetActive(false);
+        musicSfxPanel.SetActive(true);
+        qualityPanel.SetActive(false);
+        
+        AnimateSettingsButtonSelection(1);
+        currentSelectedSettings = 1;
+    }
+
+    public void ShowQualityPanel()
+    {
+        Debug.Log("Showing Quality Panel");
+        controlsPanel.SetActive(false);
+        musicSfxPanel.SetActive(false);
+        qualityPanel.SetActive(true);
+        
+        AnimateSettingsButtonSelection(2);
+        currentSelectedSettings = 2;
+    }
+
+    private void AnimateSettingsButtonSelection(int selectedIndex)
+    {
+        if (controlsButton != null)
+            controlsButton.transform.DOScale(selectedIndex == 0 ? selectedSettingsButtonScale : normalSettingsButtonScale, settingsButtonScaleDuration).SetEase(settingsButtonScaleEase);
+        
+        if (musicSfxButton != null)
+            musicSfxButton.transform.DOScale(selectedIndex == 1 ? selectedSettingsButtonScale : normalSettingsButtonScale, settingsButtonScaleDuration).SetEase(settingsButtonScaleEase);
+        
+        if (qualityButton != null)
+            qualityButton.transform.DOScale(selectedIndex == 2 ? selectedSettingsButtonScale : normalSettingsButtonScale, settingsButtonScaleDuration).SetEase(settingsButtonScaleEase);
+    }
+
+    [Header("Quality Settings Button Animation")]
+[SerializeField] private Button lowQualityButton, mediumQualityButton, highQualityButton;
+[SerializeField] private float qualityButtonScaleDuration = 0.3f;
+[SerializeField] private Vector3 selectedQualityButtonScale = new Vector3(1.15f, 1.15f, 1.15f);
+[SerializeField] private Vector3 normalQualityButtonScale = new Vector3(0.9f, 0.9f, 0.9f);
+[SerializeField] private Ease qualityButtonScaleEase = Ease.OutBack;
+[SerializeField] private SetQuality qualitySettings; // Reference to your SetQuality script
+public int currentSelectedQuality = 0; // 0 = Low, 1 = Medium, 2 = High
+
+public void SetLowQuality()
+{
+    Debug.Log("Setting Low Quality");
+    if (qualitySettings != null)
+    {
+        qualitySettings.LowQ();
+        AnimateQualityButtonSelection(0);
+        currentSelectedQuality = 0;
+    }
+}
+
+public void SetMediumQuality()
+{
+    Debug.Log("Setting Medium Quality");
+    if (qualitySettings != null)
+    {
+        qualitySettings.MediumQ();
+        AnimateQualityButtonSelection(1);
+        currentSelectedQuality = 1;
+    }
+}
+
+public void SetHighQuality()
+{
+    Debug.Log("Setting High Quality");
+    if (qualitySettings != null)
+    {
+        qualitySettings.HighQ();
+        AnimateQualityButtonSelection(2);
+        currentSelectedQuality = 2;
+    }
+}
+
+private void AnimateQualityButtonSelection(int selectedIndex)
+{
+    if (lowQualityButton != null)
+        lowQualityButton.transform.DOScale(selectedIndex == 0 ? selectedQualityButtonScale : normalQualityButtonScale, qualityButtonScaleDuration).SetEase(qualityButtonScaleEase);
+    
+    if (mediumQualityButton != null)
+        mediumQualityButton.transform.DOScale(selectedIndex == 1 ? selectedQualityButtonScale : normalQualityButtonScale, qualityButtonScaleDuration).SetEase(qualityButtonScaleEase);
+    
+    if (highQualityButton != null)
+        highQualityButton.transform.DOScale(selectedIndex == 2 ? selectedQualityButtonScale : normalQualityButtonScale, qualityButtonScaleDuration).SetEase(qualityButtonScaleEase);
+}
     #endregion
 }

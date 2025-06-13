@@ -158,28 +158,42 @@ public class GameManagerSaveAndLoad : MonoBehaviour
     // Buy Car button was clicked
     public void BuyCar()
     {
-        // Get the current car price
+        // Check if PlayerManager exists
+        if (PlayerManager.Instance == null)
+        {
+            Debug.LogError("PlayerManager instance is null!");
+            return;
+        }
+
+        // Validate current index
+        if (currentDisplayIndex < 0 || currentDisplayIndex >= carCatalog.Length)
+        {
+            Debug.LogError($"Invalid car index: {currentDisplayIndex}");
+            return;
+        }
+
+        // Get the current car price and name
         int price = carCatalog[currentDisplayIndex].price;
         string carName = carCatalog[currentDisplayIndex].carName;
+        int currentCurrency = PlayerManager.Instance.GetCurrency();
+
+        Debug.Log($"Attempting to buy {carName} for {price} stars. Current balance: {currentCurrency}");
 
         // Try to spend currency
         if (PlayerManager.Instance.SpendCurrency(price))
         {
             // Purchase successful
             PlayerManager.Instance.UnlockCar(currentDisplayIndex);
-
-            // Select this car automatically
             PlayerManager.Instance.SetSelectedCar(currentDisplayIndex);
 
-            Debug.Log("Car purchased: " + carName + " for " + price + " stars!");
-            Debug.Log("This car is now selected and will be used in the game.");
+            Debug.Log($"Success! Purchased {carName} for {price} stars. New balance: {PlayerManager.Instance.GetCurrency()}");
 
             // Update UI to show new state
             UpdateUI();
         }
         else
         {
-            Debug.Log("Not enough stars to buy " + carName + "! (Costs: " + price + " stars)");
+            Debug.Log($"Purchase failed! Not enough stars to buy {carName}! (Costs: {price} stars, Current balance: {currentCurrency})");
         }
     }
 
