@@ -5,63 +5,79 @@ using UnityEngine;
 public class StageMusic : MonoBehaviour
 
  {
-    public AudioClip[] musicClips; // Assign 3 clips in the inspector
-    public float fadeDuration = 2f; // Time for fade in/out
-    public float volume = 1f;       // Max volume for music
+    public AudioClip[] musicClips;     // Assign clips in Inspector
+    public float fadeDuration = 2f;    // Time for fade in/out
+    public float volume = 1f;          // Max volume
 
-    private AudioSource audioSource;
-    private int currentTrackIndex = 0;
+    private AudioSource[] audioSources;
+    private int currentSourceIndex = 0;
+    private int lastClipIndex = -1;
 
     private void Start()
     {
-        audioSource = GetComponent<AudioSource>();
-        audioSource.loop = false;
-        audioSource.volume = 0;
+        // Create 2 AudioSources for crossfading
+        audioSources = new AudioSource[2];
+        for (int i = 0; i < 2; i++)
+        {
+            audioSources[i] = gameObject.AddComponent<AudioSource>();
+            audioSources[i].loop = false;
+            audioSources[i].volume = 0;
+        }
+
         StartCoroutine(PlayMusicLoop());
     }
 
     private IEnumerator PlayMusicLoop()
     {
+         yield return new WaitForSeconds(10f);
         while (true)
         {
-            AudioClip clip = musicClips[currentTrackIndex];
-            audioSource.clip = clip;
-            audioSource.Play();
-            yield return StartCoroutine(FadeIn());
+            // Get a random clip index that's not the same as the last
+            int newClipIndex;
+            do
+            {
+                newClipIndex = Random.Range(0, musicClips.Length);
+            } while (newClipIndex == lastClipIndex && musicClips.Length > 1);
 
-            // Wait for the clip duration minus fade time
-            yield return new WaitForSeconds(clip.length - fadeDuration);
+            lastClipIndex = newClipIndex;
+            AudioClip nextClip = musicClips[newClipIndex];
 
-            yield return StartCoroutine(FadeOut());
+            int nextSourceIndex = 1 - currentSourceIndex; // Alternate between 0 and 1
+            AudioSource nextSource = audioSources[nextSourceIndex];
+            nextSource.clip = nextClip;
+            nextSource.Play();
 
-            // Move to next track
-            currentTrackIndex = (currentTrackIndex + 1) % musicClips.Length;
+            StartCoroutine(FadeIn(nextSource));
+            StartCoroutine(FadeOut(audioSources[currentSourceIndex]));
+
+            currentSourceIndex = nextSourceIndex;
+
+            yield return new WaitForSeconds(nextClip.length - fadeDuration);
         }
     }
 
-    private IEnumerator FadeIn()
+    private IEnumerator FadeIn(AudioSource source)
     {
         float timer = 0f;
         while (timer < fadeDuration)
         {
-            audioSource.volume = Mathf.Lerp(0, volume, timer / fadeDuration);
+            source.volume = Mathf.Lerp(0, volume, timer / fadeDuration);
             timer += Time.deltaTime;
             yield return null;
         }
-        audioSource.volume = volume;
+        source.volume = volume;
     }
 
-    private IEnumerator FadeOut()
+    private IEnumerator FadeOut(AudioSource source)
     {
         float timer = 0f;
         while (timer < fadeDuration)
         {
-            audioSource.volume = Mathf.Lerp(volume, 0, timer / fadeDuration);
+            source.volume = Mathf.Lerp(volume, 0, timer / fadeDuration);
             timer += Time.deltaTime;
             yield return null;
         }
-        audioSource.volume = 0;
-        audioSource.Stop();
+        source.volume = 0;
+        source.Stop();
     }
-
 }
