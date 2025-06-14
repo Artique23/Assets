@@ -10034,27 +10034,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalScale.x
-      value: 334.7568
+      value: 364.3493
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalScale.y
-      value: 334.7568
+      value: 364.3493
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalScale.z
-      value: 295.0859
+      value: 321.1715
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1458.6665
+      value: -1449
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -733
+      value: -732.6
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -7.8879743
+      value: -25
       objectReference: {fileID: 0}
     - target: {fileID: 6393080038790919098, guid: 7320b7a754c6bec45b961a0443c5f434, type: 3}
       propertyPath: m_LocalRotation.w
@@ -12916,7 +12916,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 15
   rotationSpeed: 50
-  distanceLimit: 140
+  distanceLimit: 250
   respawnCooldown: 25
   currentDistance: 0
 --- !u!1 &1515503214
