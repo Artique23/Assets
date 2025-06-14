@@ -13,9 +13,11 @@ public class InstructorExpressions : MonoBehaviour
     public Sprite tiredFace;       // Tired/bored expression
     public Sprite heartEyesFace;   // Excited/happy expression
     
-    [Header("Animation Settings")]
-    public float transitionSpeed = 0.2f;  // How fast expressions change
-    public float defaultDuration = 2.0f;  // How long temporary expressions last
+    [Header("Expression Durations")]
+    [Tooltip("How long each expression stays before returning to normal")]
+    public float madFaceDuration = 2.0f;     // Duration for mad face
+    public float tiredFaceDuration = 3.0f;   // Duration for tired face
+    public float heartEyesDuration = 2.5f;   // Duration for heart eyes
     
     [Header("Testing Controls")]
     [Tooltip("Enable keyboard shortcuts (Q, W, E, R) for testing expressions")]
@@ -50,51 +52,78 @@ public class InstructorExpressions : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.W))
             {
                 Debug.Log("Expression: Mad Face");
-                SetMadExpression();
+                SetMadExpressionWithTimer();
             }
             
             // E key - Tired face
             if (Input.GetKeyDown(KeyCode.E))
             {
                 Debug.Log("Expression: Tired Face");
-                SetTiredExpression();
+                SetTiredExpressionWithTimer();
             }
             
             // R key - Heart Eyes face
             if (Input.GetKeyDown(KeyCode.R))
             {
                 Debug.Log("Expression: Heart Eyes Face");
-                SetHeartEyesExpression();
+                SetHeartEyesExpressionWithTimer();
             }
         }
     }
     
-    // Basic expression methods
+    // Basic expression methods (without timers)
     public void SetNormalExpression()
     {
+        // Cancel any existing timer
+        if (resetCoroutine != null)
+        {
+            StopCoroutine(resetCoroutine);
+            resetCoroutine = null;
+        }
+        
         SetExpression(normalFace);
     }
     
     public void SetMadExpression()
     {
+        // Permanent change without timer
         SetExpression(madFace);
     }
     
     public void SetTiredExpression()
     {
+        // Permanent change without timer
         SetExpression(tiredFace);
     }
     
     public void SetHeartEyesExpression()
     {
+        // Permanent change without timer
         SetExpression(heartEyesFace);
     }
     
-    // Set expression with automatic reset
-    public void SetTemporaryExpression(Sprite expressionSprite, float duration = -1)
+    // Expression methods WITH timers
+    public void SetMadExpressionWithTimer(float customDuration = -1)
     {
-        if (duration < 0) duration = defaultDuration;
-        
+        float duration = customDuration > 0 ? customDuration : madFaceDuration;
+        SetTemporaryExpression(madFace, duration);
+    }
+    
+    public void SetTiredExpressionWithTimer(float customDuration = -1)
+    {
+        float duration = customDuration > 0 ? customDuration : tiredFaceDuration;
+        SetTemporaryExpression(tiredFace, duration);
+    }
+    
+    public void SetHeartEyesExpressionWithTimer(float customDuration = -1)
+    {
+        float duration = customDuration > 0 ? customDuration : heartEyesDuration;
+        SetTemporaryExpression(heartEyesFace, duration);
+    }
+    
+    // Set expression with automatic reset
+    public void SetTemporaryExpression(Sprite expressionSprite, float duration)
+    {
         SetExpression(expressionSprite);
         
         // Cancel any existing reset coroutine
@@ -119,23 +148,7 @@ public class InstructorExpressions : MonoBehaviour
     private IEnumerator ResetExpressionAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        SetNormalExpression();
+        SetExpression(normalFace);
         resetCoroutine = null;
-    }
-    
-    // Shorthand methods for temporary expressions
-    public void ShowMadExpression(float duration = -1)
-    {
-        SetTemporaryExpression(madFace, duration);
-    }
-    
-    public void ShowTiredExpression(float duration = -1)
-    {
-        SetTemporaryExpression(tiredFace, duration);
-    }
-    
-    public void ShowHeartEyesExpression(float duration = -1)
-    {
-        SetTemporaryExpression(heartEyesFace, duration);
     }
 }
