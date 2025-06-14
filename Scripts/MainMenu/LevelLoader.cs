@@ -23,8 +23,7 @@ public class LevelLoader : MonoBehaviour
     // LEVELS Loading Scenes Code
     public void LoadLevel1()
     {
-        Debug.Log("Loaded Level 1...");
-        SceneManager.LoadScene("Stage 1");
+        StartCoroutine(LoadLevel("Stage 1"));
     }
     public void LoadLevel2()
     {
