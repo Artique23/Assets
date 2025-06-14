@@ -1744,6 +1744,75 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6b3cc12384d72e541a2ae58385e19d7c, type: 3}
+--- !u!1001 &215465270
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1445573294}
+    m_Modifications:
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 374.47348
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 374.47348
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 330.0959
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1461.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -732.5577
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 96.788315
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5951330244710446227, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+      propertyPath: m_Name
+      value: NPC_Var3_Color1 (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
 --- !u!1 &217545550
 GameObject:
   m_ObjectHideFlags: 0
@@ -7737,6 +7806,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 937637186}
   m_CullTransparentMesh: 1
+--- !u!4 &941398687 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 406639879577352885, guid: 700337cf18345fd4c9e0b962d504e569, type: 3}
+  m_PrefabInstance: {fileID: 215465270}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &942881060
 GameObject:
   m_ObjectHideFlags: 0
@@ -12065,6 +12139,7 @@ Transform:
   - {fileID: 1426030543}
   - {fileID: 2135033296}
   - {fileID: 1762147629}
+  - {fileID: 941398687}
   - {fileID: 506105996}
   - {fileID: 397426817}
   - {fileID: 1904532699}
@@ -12915,7 +12990,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 15
-  rotationSpeed: 50
+  rotationSpeed: 0
   distanceLimit: 250
   respawnCooldown: 25
   currentDistance: 0
@@ -15478,6 +15553,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC_Var2_Color1
       objectReference: {fileID: 0}
+    - target: {fileID: 5615816802517766302, guid: ab6713f4102e4424e8b7bd31afe725b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15622,7 +15701,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 15
   rotationSpeed: 0
-  distanceLimit: 195
+  distanceLimit: 220
   respawnCooldown: 7
   currentDistance: 0
 --- !u!1 &1868433157
