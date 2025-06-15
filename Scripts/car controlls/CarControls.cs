@@ -359,7 +359,7 @@ public class CarControls : MonoBehaviour
         if (speedometerText != null)
         {
             float speed = GetCurrentSpeed() * 3.6f; // Unity units/sec to km/h
-            speedometerText.text = Mathf.RoundToInt(speed).ToString() + " km/h";
+            speedometerText.text = Mathf.RoundToInt(speed).ToString() + " <size=12>km/h</size>";
         }
     }
 
