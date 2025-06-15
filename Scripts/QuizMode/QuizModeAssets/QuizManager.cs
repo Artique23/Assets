@@ -20,6 +20,10 @@ public class QuizManager : MonoBehaviour
     public int currentQuestionIndex; // Track the current question index
     public TextMeshProUGUI QuestionTxt; // UI Text element to display the question; // UI Text element to display the question
 
+    [Header("SFX")]
+    public QuizModeSFX quizModeSFX;// Reference to the QuizModeSFX script
+    private bool timerWarningPlayed = false;
+
     // total questions count
     public int totalQuestionsCount = 0;
     public int scoreCount = 0;
@@ -330,6 +334,11 @@ public PanelMovement panelMovementScript;
                 // Optional: change color when time is running out
                 if (currentTime <= 5)
                 {
+                    if (!timerWarningPlayed && quizModeSFX != null)
+                {
+                    quizModeSFX.PlayTimerWarning();
+                    timerWarningPlayed = true;
+                }
                     TimerText.color = Color.red;
                 }
                 else
@@ -342,6 +351,7 @@ public PanelMovement panelMovementScript;
         // Time's up if we didn't already answer
         if (!isShowingFeedback)
         {
+            quizModeSFX.StopWarning();
             TimeUp();
         }
     }
@@ -1246,6 +1256,7 @@ public PanelMovement panelMovementScript;
             // Initialize timer if not resuming from pause
             currentTime = questionTime;
         }
+        timerWarningPlayed = false;
 
         // Update timer UI
         if (TimerText != null)
@@ -1265,6 +1276,11 @@ public PanelMovement panelMovementScript;
                 
                 if (currentTime <= 5)
                     TimerText.color = Color.red;
+                    if (!timerWarningPlayed && quizModeSFX != null)
+                        {
+                            quizModeSFX.PlayTimerWarning();
+                            timerWarningPlayed = true;
+                        }
                 else
                     TimerText.color = Color.white;
             }
@@ -1272,6 +1288,7 @@ public PanelMovement panelMovementScript;
 
         if (!isShowingFeedback)
         {
+            quizModeSFX.StopWarning();
             TimeUp();
         }
     }
