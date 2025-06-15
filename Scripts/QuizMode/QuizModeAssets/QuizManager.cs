@@ -20,6 +20,10 @@ public class QuizManager : MonoBehaviour
     public int currentQuestionIndex; // Track the current question index
     public TextMeshProUGUI QuestionTxt; // UI Text element to display the question; // UI Text element to display the question
 
+    [Header("SFX")]
+    public QuizModeSFX quizModeSFX;// Reference to the QuizModeSFX script
+    private bool timerWarningPlayed = false;
+
     // total questions count
     public int totalQuestionsCount = 0;
     public int scoreCount = 0;
@@ -80,6 +84,8 @@ public class QuizManager : MonoBehaviour
     public int star1Threshold = 300; // Score needed for first star
     public int star2Threshold = 600; // Score needed for second star
     public int star3Threshold = 900; // Score needed for third star
+    public int star4Threshold = 1200; // Score needed for fourth star (optional)
+    public GameObject star4; // Reference to the fourth star (optional)
 
     [Header("Button Animation Settings")]
     public float correctButtonScaleMultiplier = 1.2f; // Button will scale to 120% of original size
@@ -328,6 +334,11 @@ public PanelMovement panelMovementScript;
                 // Optional: change color when time is running out
                 if (currentTime <= 5)
                 {
+                    if (!timerWarningPlayed && quizModeSFX != null)
+                {
+                    quizModeSFX.PlayTimerWarning();
+                    timerWarningPlayed = true;
+                }
                     TimerText.color = Color.red;
                 }
                 else
@@ -340,6 +351,7 @@ public PanelMovement panelMovementScript;
         // Time's up if we didn't already answer
         if (!isShowingFeedback)
         {
+            quizModeSFX.StopWarning();
             TimeUp();
         }
     }
@@ -439,6 +451,9 @@ public PanelMovement panelMovementScript;
         SetElementAlpha(star1, 0);
         SetElementAlpha(star2, 0);
         SetElementAlpha(star3, 0);
+        if (star4 != null)
+            SetElementAlpha(star4, 0);
+            
         SetElementAlpha(retryButton, 0);
         SetElementAlpha(homeButton, 0);
 
@@ -503,32 +518,81 @@ public PanelMovement panelMovementScript;
 
         yield return new WaitForSeconds(delayBetweenElements);
 
-        // 7. Fade in stars based on score thresholds (no scaling)
+        // Debug the star thresholds and current score
+        Debug.Log($"Star thresholds: {star1Threshold}, {star2Threshold}, {star3Threshold}, {star4Threshold}");
+        Debug.Log($"Current score: {scoreCount}");
+        
+        // 7. Fade in stars based on score thresholds - FIXED VERSION
         // First star
         if (scoreCount >= star1Threshold)
         {
-            star1.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
-                .SetEase(fadeEaseType);
-
-            yield return new WaitForSeconds(delayBetweenElements);
+            CanvasGroup star1Group = star1.GetComponent<CanvasGroup>();
+            if (star1Group != null)
+            {
+                Debug.Log("Fading in star 1");
+                star1Group.alpha = 0; // Ensure it starts invisible
+                star1Group.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+                yield return new WaitForSeconds(delayBetweenElements);
+            }
+            else
+            {
+                Debug.LogError("Star 1 is missing CanvasGroup component!");
+            }
         }
 
         // Second star
         if (scoreCount >= star2Threshold)
         {
-            star2.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
-                .SetEase(fadeEaseType);
-
-            yield return new WaitForSeconds(delayBetweenElements);
+            CanvasGroup star2Group = star2.GetComponent<CanvasGroup>();
+            if (star2Group != null)
+            {
+                Debug.Log("Fading in star 2");
+                star2Group.alpha = 0; // Ensure it starts invisible
+                star2Group.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+                yield return new WaitForSeconds(delayBetweenElements);
+            }
+            else
+            {
+                Debug.LogError("Star 2 is missing CanvasGroup component!");
+            }
         }
 
         // Third star
         if (scoreCount >= star3Threshold)
         {
-            star3.GetComponent<CanvasGroup>().DOFade(1, elementFadeDuration)
-                .SetEase(fadeEaseType);
+            CanvasGroup star3Group = star3.GetComponent<CanvasGroup>();
+            if (star3Group != null)
+            {
+                Debug.Log("Fading in star 3");
+                star3Group.alpha = 0; // Ensure it starts invisible
+                star3Group.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+                yield return new WaitForSeconds(delayBetweenElements);
+            }
+            else
+            {
+                Debug.LogError("Star 3 is missing CanvasGroup component!");
+            }
+        }
 
-            yield return new WaitForSeconds(delayBetweenElements);
+        // Fourth star - only if it exists
+        if (star4 != null && scoreCount >= star4Threshold)
+        {
+            CanvasGroup star4Group = star4.GetComponent<CanvasGroup>();
+            if (star4Group != null)
+            {
+                Debug.Log("Fading in star 4");
+                star4Group.alpha = 0; // Ensure it starts invisible
+                star4Group.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+                
+                // Optional special effect for highest star
+                star4.transform.DOPunchScale(new Vector3(0.2f, 0.2f, 0.2f), 0.4f, 5, 0.5f);
+                
+                yield return new WaitForSeconds(delayBetweenElements);
+            }
+            else
+            {
+                Debug.LogError("Star 4 is missing CanvasGroup component!");
+            }
         }
 
         // Wait a bit longer before showing buttons
@@ -672,6 +736,12 @@ public PanelMovement panelMovementScript;
             option.GetComponent<Button>().interactable = false;
         }
 
+        // Hide the question image during feedback
+        if (imageContainer != null)
+        {
+            imageContainer.SetActive(false);
+        }
+
         // Get the appropriate feedback message from the current question
         string feedback;
         int correctIndex = QnA[currentQuestionIndex].CorrectAnswer - 1;
@@ -695,6 +765,9 @@ public PanelMovement panelMovementScript;
 
         // Update the question text with the feedback
         QuestionTxt.text = feedback;
+
+        // Set text alignment to center during feedback (since image is hidden)
+        QuestionTxt.alignment = TextAlignmentOptions.Center;
 
         // Ensure next button is initially hidden but active
         nextButton.SetActive(true);
@@ -925,7 +998,7 @@ public PanelMovement panelMovementScript;
             return;
         }
 
-        // NEW CODE: Check if we've reached halfway point
+        // Check if we've reached halfway point
         if (!miniGamePlayed && answeredQuestionsCount >= (maximumQuestions / 2))
         {
             // We've reached half of the questions, trigger mini-game
@@ -1089,6 +1162,10 @@ public PanelMovement panelMovementScript;
 
             if (star3 != null && star3.GetComponent<CanvasGroup>() == null)
                 star3.AddComponent<CanvasGroup>();
+            
+            // Add this for the 4th star - check if it exists first
+            if (star4 != null && star4.GetComponent<CanvasGroup>() == null)
+                star4.AddComponent<CanvasGroup>();
 
             if (retryButton != null && retryButton.GetComponent<CanvasGroup>() == null)
                 retryButton.AddComponent<CanvasGroup>();
@@ -1179,6 +1256,7 @@ public PanelMovement panelMovementScript;
             // Initialize timer if not resuming from pause
             currentTime = questionTime;
         }
+        timerWarningPlayed = false;
 
         // Update timer UI
         if (TimerText != null)
@@ -1198,6 +1276,11 @@ public PanelMovement panelMovementScript;
                 
                 if (currentTime <= 5)
                     TimerText.color = Color.red;
+                    if (!timerWarningPlayed && quizModeSFX != null)
+                        {
+                            quizModeSFX.PlayTimerWarning();
+                            timerWarningPlayed = true;
+                        }
                 else
                     TimerText.color = Color.white;
             }
@@ -1205,6 +1288,7 @@ public PanelMovement panelMovementScript;
 
         if (!isShowingFeedback)
         {
+            quizModeSFX.StopWarning();
             TimeUp();
         }
     }

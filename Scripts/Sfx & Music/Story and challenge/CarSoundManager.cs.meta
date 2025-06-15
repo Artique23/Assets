@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: d43b0a6fdf9aa7344a33d3fc7c111355
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - audioMixer: {fileID: 24100000, guid: c8ed14dd4bb091546b75bac1ea42e641, type: 2}
+  - musicGroup: {fileID: -5744170412998908864, guid: c8ed14dd4bb091546b75bac1ea42e641, type: 2}
+  - sfxGroup: {fileID: 7357862818671528391, guid: c8ed14dd4bb091546b75bac1ea42e641, type: 2}
+  - idleSource: {instanceID: 0}
+  - hornSource: {instanceID: 0}
+  - HazardSource: {instanceID: 0}
+  - LeftSignalSource: {instanceID: 0}
+  - RightSignalSource: {instanceID: 0}
+  - ButtonSource: {instanceID: 0}
+  - engineIdleClip: {instanceID: 0}
+  - HornClip: {instanceID: 0}
+  - HazardClip: {instanceID: 0}
+  - LeftRightSignalClip: {instanceID: 0}
+  - ButtonClip: {instanceID: 0}
+  - carControls: {instanceID: 0}
+  - hornButton: {instanceID: 0}
+  - hazardButton: {instanceID: 0}
+  - leftSignalButton: {instanceID: 0}
+  - rightSignalButton: {instanceID: 0}
+  - highbeamButton: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

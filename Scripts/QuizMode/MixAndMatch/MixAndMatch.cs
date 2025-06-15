@@ -7,6 +7,10 @@ using DG.Tweening; // Add this for DOTween animations
 
 public class MixAndMatch : MonoBehaviour
 {
+    [Header("SFX")]
+    public QuizModeSFX quizModeSFX;// Reference to the QuizModeSFX script
+    private bool timerWarningPlayed = false;
+    public MixAndMatchSFX mixAndMatchSFX;
     [Header("References")]
     public QuizManager quizManager; // Reference to the main quiz manager
     public GameObject quizPanel; // Quiz panel to fade out
@@ -52,6 +56,13 @@ public class MixAndMatch : MonoBehaviour
     [Header("Pause Controls")]
     public Button pauseButton; // Pause button for Mix and Match mode
 
+    [Header("Instruction Panel")]
+    public GameObject instructionPanel; // Panel containing instructions
+    public float instructionFadeInDuration = 0.8f; // How long it takes to fade in
+    public float instructionDisplayDuration = 3.0f; // How long to display the instruction
+    public float instructionFadeOutDuration = 0.8f; // How long it takes to fade out
+    public Ease instructionFadeEaseType = Ease.InOutSine; // Easing for the fade animation
+
     // Add these new fields
     private bool isTimerPaused = false;
     private float pausedTimeRemaining = 0f;
@@ -91,10 +102,18 @@ public class MixAndMatch : MonoBehaviour
             winningInventory = FindObjectOfType<WinningInventory>();
         }
 
-        PauseManager pauseManager = FindObjectOfType<PauseManager>();
-        if (pauseManager != null && pauseButton != null)
+        // Fix for line 458 - Check if PauseManager exists before referencing it
+        if (pauseButton != null)
         {
-            pauseManager.RegisterPauseButton(pauseButton);
+            PauseManager pauseManager = FindObjectOfType<PauseManager>();
+            if (pauseManager != null)
+            {
+                pauseManager.RegisterPauseButton(pauseButton);
+            }
+            else
+            {
+                Debug.LogWarning("PauseManager not found in scene. Pause functionality may not work.");
+            }
         }
     }
 
@@ -158,6 +177,7 @@ public class MixAndMatch : MonoBehaviour
         }
     }
 
+    // Update the TransitionToMiniGame method
     private IEnumerator TransitionToMiniGame()
     {
         // Make sure summary panel is hidden before starting
@@ -175,7 +195,13 @@ public class MixAndMatch : MonoBehaviour
         // Deactivate quiz panel after fading
         quizPanel.SetActive(false);
 
-        // Activate mini-game panel
+        // Show instruction panel with fade animation BEFORE showing the mini-game panel
+        if (instructionPanel != null)
+        {
+            yield return StartCoroutine(ShowInstructionPanelWithFade());
+        }
+
+        // Now activate mini-game panel
         mixAndMatchPanel.SetActive(true);
 
         // Fade in mini-game panel
@@ -186,9 +212,9 @@ public class MixAndMatch : MonoBehaviour
         }
 
         // At this point, the mini-game is fully visible
-        Debug.Log("Mini-game is now active!");
+        Debug.Log("Mini-game panel is now visible!");
         
-        // Start the timer
+        // Start the timer after everything is visible
         StartTimer();
     }
 
@@ -215,7 +241,12 @@ public class MixAndMatch : MonoBehaviour
         {
             // Update timer display
             UpdateTimerDisplay();
-            
+            int secondsLeft = Mathf.CeilToInt(remainingTime);
+            if (secondsLeft == 15 && !timerWarningPlayed && quizModeSFX != null)
+            {
+                quizModeSFX.PlayTimerWarning();
+                timerWarningPlayed = true;
+            }
             // Wait for a frame
             yield return null;
             
@@ -227,6 +258,8 @@ public class MixAndMatch : MonoBehaviour
         remainingTime = 0;
         UpdateTimerDisplay();
         
+        if (quizModeSFX != null)
+        quizModeSFX.StopWarning();
         // Time's up!
         if (!gameEnded)
         {
@@ -350,6 +383,8 @@ public class MixAndMatch : MonoBehaviour
             // Make panel active but position it off-screen first
             summaryPanel.SetActive(true);
             
+                if (mixAndMatchSFX != null)
+                mixAndMatchSFX.PlaySummaryPanelSFX();
             // Get the panel's RectTransform
             RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
             
@@ -624,16 +659,67 @@ public class MixAndMatch : MonoBehaviour
         while (remainingTime > 0 && !gameEnded)
         {
             UpdateTimerDisplay();
+            int secondsLeft = Mathf.CeilToInt(remainingTime);
+            if (secondsLeft == 15 && !timerWarningPlayed && quizModeSFX != null)
+            {
+                quizModeSFX.PlayTimerWarning();
+                timerWarningPlayed = true;
+            }
             yield return null;
             remainingTime -= Time.deltaTime;
         }
         
         remainingTime = 0;
         UpdateTimerDisplay();
-        
+        if (quizModeSFX != null)
+        quizModeSFX.StopWarning();
+
         if (!gameEnded)
         {
             EndGame();
         }
+    }
+
+    // Add this new method for fading the instruction panel
+    private IEnumerator ShowInstructionPanelWithFade()
+    {
+          if (mixAndMatchSFX != null)
+        {
+            mixAndMatchSFX.PlayInstructionAudio();
+        }
+        // Make sure the panel is active
+        instructionPanel.SetActive(true);
+        
+        // Make sure the panel has a CanvasGroup component
+        CanvasGroup instructionCanvasGroup = instructionPanel.GetComponent<CanvasGroup>();
+        if (instructionCanvasGroup == null)
+        {
+            instructionCanvasGroup = instructionPanel.AddComponent<CanvasGroup>();
+        }
+        
+        // Start with fully transparent
+        instructionCanvasGroup.alpha = 0f;
+        
+        // Fade in
+        instructionCanvasGroup.DOFade(1f, instructionFadeInDuration)
+            .SetEase(instructionFadeEaseType);
+        
+        // Wait for fade in to complete
+        yield return new WaitForSeconds(instructionFadeInDuration);
+        
+        // Wait for display duration
+        yield return new WaitForSeconds(instructionDisplayDuration);
+        
+        // Fade out
+        instructionCanvasGroup.DOFade(0f, instructionFadeOutDuration)
+            .SetEase(instructionFadeEaseType);
+        
+        // Wait for fade out to complete
+        yield return new WaitForSeconds(instructionFadeOutDuration);
+        
+        // Hide the panel
+        instructionPanel.SetActive(false);
+        
+        Debug.Log("Instruction panel fade sequence completed!");
     }
 }

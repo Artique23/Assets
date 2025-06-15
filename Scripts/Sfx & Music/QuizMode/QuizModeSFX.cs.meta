@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 11132e3803b59f3498b226e6b73b1af2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - audioMixer: {fileID: 24100000, guid: c8ed14dd4bb091546b75bac1ea42e641, type: 2}
+  - musicGroup: {fileID: -5744170412998908864, guid: c8ed14dd4bb091546b75bac1ea42e641, type: 2}
+  - sfxGroup: {fileID: 7357862818671528391, guid: c8ed14dd4bb091546b75bac1ea42e641, type: 2}
+  - sfxSource: {instanceID: 0}
+  - buttonClickClip: {instanceID: 0}
+  - correctClip: {instanceID: 0}
+  - wrongClip: {instanceID: 0}
+  - timerWarningClip: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

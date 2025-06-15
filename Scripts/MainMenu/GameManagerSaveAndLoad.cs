@@ -28,6 +28,13 @@ public class GameManagerSaveAndLoad : MonoBehaviour
     [SerializeField] private TextMeshProUGUI carNameText;
     [SerializeField] private GameObject selectedIndicator; // Optional - an object that shows this car is selected
 
+    [Header("Selection Animation Settings")]
+    [SerializeField] private float selectionPulseScale = 1.5f;      // How big the indicator gets when pulsing
+    [SerializeField] private float selectionPulseDuration = 0.1f;   // How long each pulse lasts
+    [SerializeField] private int selectionPulseCount = 2;           // How many pulses to perform
+    [SerializeField] private bool useColorPulse = true;             // Whether to pulse color too
+    [SerializeField] private Color selectionHighlightColor = new Color(1f, 0.8f, 0.2f); // Gold highlight color
+
     public int currentDisplayIndex = 0;
     private GameObject currentCarInstance;
     #endregion
@@ -141,12 +148,75 @@ public class GameManagerSaveAndLoad : MonoBehaviour
             Debug.Log("Selected car: " + carName + " (Index: " + currentDisplayIndex + ")");
             Debug.Log("This car will now be used in the game!");
 
+            // Add visual feedback
+            StartCoroutine(ShowSelectionConfirmation());
+
             // Update UI to hide select button for currently selected car
             UpdateUI();
         }
         else
         {
             Debug.Log("Can't select locked car!");
+        }
+    }
+
+    // Add this method for visual confirmation
+    private IEnumerator ShowSelectionConfirmation()
+    {
+        // Flash the selected indicator if it exists
+        if (selectedIndicator != null)
+        {
+            // Make sure it's active
+            selectedIndicator.SetActive(true);
+            
+            // Get the original scale and color
+            Vector3 originalScale = selectedIndicator.transform.localScale;
+            
+            // Get image component if we're doing color changes
+            Image indicatorImage = null;
+            Color originalColor = Color.white;
+            
+            if (useColorPulse)
+            {
+                indicatorImage = selectedIndicator.GetComponent<Image>();
+                if (indicatorImage != null)
+                {
+                    originalColor = indicatorImage.color;
+                }
+            }
+            
+            // Flash effect
+            for (int i = 0; i < selectionPulseCount; i++)
+            {
+                // Scale up
+                selectedIndicator.transform.localScale = originalScale * selectionPulseScale;
+                
+                // Change color if enabled
+                if (useColorPulse && indicatorImage != null)
+                {
+                    indicatorImage.color = selectionHighlightColor;
+                }
+                
+                yield return new WaitForSeconds(selectionPulseDuration);
+                
+                // Scale down
+                selectedIndicator.transform.localScale = originalScale;
+                
+                // Restore color
+                if (useColorPulse && indicatorImage != null)
+                {
+                    indicatorImage.color = originalColor;
+                }
+                
+                yield return new WaitForSeconds(selectionPulseDuration);
+            }
+            
+            // Ensure original state is restored
+            selectedIndicator.transform.localScale = originalScale;
+            if (useColorPulse && indicatorImage != null)
+            {
+                indicatorImage.color = originalColor;
+            }
         }
     }
 

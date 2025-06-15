@@ -29,6 +29,7 @@ public class Stage1TutorialManager : StageBaseManager
 
     public TMP_Text scoreText; // Assign in Inspector
 
+
     private readonly string[] gearHints = {
         "<b>P</b> = Park (vehicle won't move)",
         "<b>R</b> = Reverse (move backward)",
@@ -108,7 +109,7 @@ public class Stage1TutorialManager : StageBaseManager
 
         if (brakeButton != null) brakeButton.gameObject.SetActive(false);
         if (steeringWheelImage != null) steeringWheelImage.gameObject.SetActive(false);
-
+        // base.wadeExpressions.SetTiredExpressionWithTimer(); test
         yield return new WaitUntil(() => Vector3.Distance(carControls.transform.position, carStartPos) > moveDistanceForTutorial);
         UnhighlightButton(acceleratorButton);
 
@@ -116,6 +117,7 @@ public class Stage1TutorialManager : StageBaseManager
         int dialogId2 = ShowWade("Good job! Now <b>press the brake</b> to stop.");
         if (brakeButton != null) brakeButton.gameObject.SetActive(true);
         HighlightButton(brakeButton);
+
 
         brakingComplete = false;
         brakeButton.onClick.RemoveAllListeners();
