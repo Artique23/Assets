@@ -12,15 +12,17 @@ public class InstructorExpressions : MonoBehaviour
     public Sprite madFace;         // Angry expression
     public Sprite tiredFace;       // Tired/bored expression
     public Sprite heartEyesFace;   // Excited/happy expression
+    public Sprite hoorayFace;      // Celebratory/hooray expression
     
     [Header("Expression Durations")]
     [Tooltip("How long each expression stays before returning to normal")]
     public float madFaceDuration = 2.0f;     // Duration for mad face
     public float tiredFaceDuration = 3.0f;   // Duration for tired face
     public float heartEyesDuration = 2.5f;   // Duration for heart eyes
+    public float hoorayFaceDuration = 2.0f;  // Duration for hooray face
     
     [Header("Testing Controls")]
-    [Tooltip("Enable keyboard shortcuts (Q, W, E, R) for testing expressions")]
+    [Tooltip("Enable keyboard shortcuts (Q, W, E, R, T) for testing expressions")]
     public bool enableKeyboardTesting = true;
     
     private Sprite currentExpression;
@@ -68,6 +70,13 @@ public class InstructorExpressions : MonoBehaviour
                 Debug.Log("Expression: Heart Eyes Face");
                 SetHeartEyesExpressionWithTimer();
             }
+            
+            // T key - Hooray face
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                Debug.Log("Expression: Hooray Face");
+                SetHoorayExpressionWithTimer();
+            }
         }
     }
     
@@ -102,6 +111,12 @@ public class InstructorExpressions : MonoBehaviour
         SetExpression(heartEyesFace);
     }
     
+    public void SetHoorayExpression()
+    {
+        // Permanent change without timer
+        SetExpression(hoorayFace);
+    }
+    
     // Expression methods WITH timers
     public void SetMadExpressionWithTimer(float customDuration = -1)
     {
@@ -119,6 +134,12 @@ public class InstructorExpressions : MonoBehaviour
     {
         float duration = customDuration > 0 ? customDuration : heartEyesDuration;
         SetTemporaryExpression(heartEyesFace, duration);
+    }
+    
+    public void SetHoorayExpressionWithTimer(float customDuration = -1)
+    {
+        float duration = customDuration > 0 ? customDuration : hoorayFaceDuration;
+        SetTemporaryExpression(hoorayFace, duration);
     }
     
     // Set expression with automatic reset
