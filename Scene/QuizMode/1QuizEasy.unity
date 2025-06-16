@@ -650,6 +650,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e481163155a894045a88adf54e74b1ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  levelLoader: {fileID: 1904519608}
   QnA:
   - Question: What should you do when approaching a pedestrian crossing?
     Answers:
@@ -10976,6 +10977,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1790215464515090898, guid: 27a4c061831452847b1d882ea6485d3c, type: 3}
   m_PrefabInstance: {fileID: 1843025664}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1904519608 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3480628748058739294, guid: 27a4c061831452847b1d882ea6485d3c, type: 3}
+  m_PrefabInstance: {fileID: 1843025664}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c35da746db472a64f8801a6c04cae2b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1925513948
 GameObject:
   m_ObjectHideFlags: 0
