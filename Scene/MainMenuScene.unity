@@ -7977,8 +7977,8 @@ MonoBehaviour:
     and aspiring drivers about traffic rules and road safety in a fun, interactive
     way. Created by Keithnetic, a group of college students, the game offers realistic
     driving experiences based on Quezon City\u2019s roads. With modes like Story
-    Mode, Quiz Mode, and Free Drive Mode, players can explore and master traffic
-    laws, road signs, and safe driving techniques. RoadWise is more than just a game\u2014it\u2019s
+    Mode, Quiz Mode, and Challenge Mode, players can explore and master traffic laws,
+    road signs, and safe driving techniques. RoadWise is more than just a game\u2014it\u2019s
     a valuable tool to prepare future drivers to navigate real-world roads confidently
     and responsibly."
   m_isRightToLeft: 0
@@ -13569,7 +13569,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1619559970
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15431,7 +15431,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1857400264
 MonoBehaviour:
   m_ObjectHideFlags: 0

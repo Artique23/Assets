@@ -8,6 +8,7 @@ using DG.Tweening;
 
 public class QuizManager : MonoBehaviour
 {
+    public LevelLoader levelLoader; // Reference to LevelLoader
     [System.Serializable]
     public class ButtonInfo
     {
@@ -116,6 +117,7 @@ public PanelMovement panelMovementScript;
 
     private void Start()
     {
+        levelLoader = FindObjectOfType<LevelLoader>();
         totalQuestionsCount = QnA.Count;
 
         // Store original button scales
@@ -368,14 +370,42 @@ public PanelMovement panelMovementScript;
     }
 
 
-    public void retryQuiz()
+        public void retryQuiz()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Make sure we have a reference to the LevelLoader
+        if (levelLoader == null)
+        {
+            levelLoader = FindObjectOfType<LevelLoader>();
+            
+            if (levelLoader == null)
+            {
+                Debug.LogWarning("LevelLoader not found, using direct scene loading instead");
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                return;
+            }
+        }
+        
+        // Use LevelLoader's coroutine to reload the current scene with transition
+        StartCoroutine(levelLoader.LoadLevel(SceneManager.GetActiveScene().name));
     }
 
     public void goToMainMenu()
     {
-        SceneManager.LoadScene("MainMenuScene");
+        if (levelLoader == null)
+        {
+            levelLoader = FindObjectOfType<LevelLoader>();
+            
+            if (levelLoader == null)
+            {
+                Debug.LogWarning("LevelLoader not found, using direct scene loading instead");
+                SceneManager.LoadScene("MainMenuScene");
+                return;
+            }
+        }
+        
+        // Fix: Don't use StartCoroutine with levelLoader's method
+        // Instead, call the LoadMainMenu method directly
+        levelLoader.LoadMainMenu();
     }
     public void gameOver()
     {
