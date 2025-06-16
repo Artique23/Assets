@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class StageScoreManager : MonoBehaviour
 {
+
     public static StageScoreManager Instance;
     public int totalPoints = 0;
 
@@ -29,5 +30,11 @@ public class StageScoreManager : MonoBehaviour
     public int GetPoints()
     {
         return totalPoints;
+    }
+
+    // Add this to your StageScoreManager.cs file
+    public void SetPointsForTesting(int points)
+    {
+        this.totalPoints = points;
     }
 }
