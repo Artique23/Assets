@@ -6,6 +6,8 @@ using DG.Tweening;
 using UnityEngine.SceneManagement;
 public class PauseManager : MonoBehaviour
 {
+
+    LevelLoader levelLoader;
     [Header("References")]
     public GameObject pausePanel;
     public Button[] pauseButtons; // Change to array for multiple pause buttons
@@ -30,6 +32,9 @@ public class PauseManager : MonoBehaviour
     
     private void Awake()
     {
+        // Find the LevelLoader if we need it
+        levelLoader = FindObjectOfType<LevelLoader>();
+        
         // Find references if not set
         quizManager = FindObjectOfType<QuizManager>();
         mixAndMatchManager = FindObjectOfType<MixAndMatch>();
@@ -131,8 +136,17 @@ public class PauseManager : MonoBehaviour
         // Resume time scale before scene reload
         Time.timeScale = 1f;
         
-        // Reload current scene
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Use LevelLoader for animated transition if available
+        if (levelLoader != null)
+        {
+            StartCoroutine(RetryCurrentLevel());
+        }
+        else
+        {
+            // Fallback to direct loading if LevelLoader isn't found
+            Debug.LogWarning("LevelLoader not found. Using direct scene loading instead.");
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
     
     public void GoToMainMenu()
@@ -252,5 +266,16 @@ public class PauseManager : MonoBehaviour
         button.onClick.AddListener(TogglePause);
         
         Debug.Log($"Successfully registered pause button: {button.gameObject.name}");
+    }
+
+    // Helper method to handle LevelLoader coroutine
+    private IEnumerator RetryCurrentLevel()
+    {
+        // Get current scene name
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        Debug.Log($"Retrying current level: {currentSceneName} with transition");
+        
+        // Use the LevelLoader to reload with transition
+        yield return StartCoroutine(levelLoader.LoadLevel(currentSceneName));
     }
 }

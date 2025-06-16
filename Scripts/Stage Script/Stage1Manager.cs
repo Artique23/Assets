@@ -37,6 +37,16 @@ public class Stage1TutorialManager : StageBaseManager
         "<b>D</b> = Drive (move forward)"
     };
 
+    [Header("Testing Features")]
+    [Tooltip("Enable test mode to manually set score")]
+    public bool testMode = false;
+    [Tooltip("Test score for win panel (only works when testMode is enabled)")]
+    public int testScore = 300;
+    [Tooltip("Show test controls in-game")]
+    public bool showTestControls = false;
+    [Tooltip("Reference to the win panel if you want to test it")]
+    public ParkingZone parkingZone;
+
     void Start()
     {
         carControls.carPoweredOn = true;
@@ -47,8 +57,46 @@ public class Stage1TutorialManager : StageBaseManager
 
     void Update()
     {
-        if (scoreText != null)
-            scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
+        if (testMode)
+        {
+            // Update StageScoreManager with our test score
+            StageScoreManager.Instance.SetPointsForTesting(testScore);
+            
+            // Show our test score in the UI
+            if (scoreText != null)
+                scoreText.text = "Test Score: " + testScore;
+                
+            // Show test controls if enabled
+            if (showTestControls)
+            {
+                // Test key bindings to adjust score and test win panel
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    testScore += 50;
+                    Debug.Log("Test Score increased: " + testScore);
+                }
+                
+                if (Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    testScore -= 50;
+                    testScore = Mathf.Max(0, testScore); // Don't go below 0
+                    Debug.Log("Test Score decreased: " + testScore);
+                }
+                
+                // Press T to test the win panel
+                if (Input.GetKeyDown(KeyCode.T) && parkingZone != null)
+                {
+                    Debug.Log("Testing win panel with score: " + testScore);
+                    parkingZone.TestWinPanel();
+                }
+            }
+        }
+        else
+        {
+            // Normal score display
+            if (scoreText != null)
+                scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
+        }
     }
 
     void HideAllControls()
