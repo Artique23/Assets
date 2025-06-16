@@ -295,6 +295,7 @@ public PanelMovement panelMovementScript;
     // Call this method to start the timer for a question
     private void StartTimer()
     {
+         timerWarningPlayed = false;
         // Stop any existing timer
         if (timerCoroutine != null)
         {
@@ -343,6 +344,7 @@ public PanelMovement panelMovementScript;
                 }
                 else
                 {
+
                     TimerText.color = Color.white;
                 }
             }
@@ -389,6 +391,7 @@ public PanelMovement panelMovementScript;
     }
     public void gameOver()
     {
+        
         // Stop any running timers
         if (timerCoroutine != null)
         {
