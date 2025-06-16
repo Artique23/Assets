@@ -45,7 +45,7 @@ public class LevelLoader : MonoBehaviour
         Debug.Log("Loaded Level 5...");
         SceneManager.LoadScene("Level5Scene");
     }
-    
+
     public void LoadChallengeMode()
     {
         Debug.Log("Loaded Challenge Mode...");
@@ -97,22 +97,22 @@ public class LevelLoader : MonoBehaviour
         // Reset lighting parameters before returning to main menu
         RenderSettings.fog = false;  // Turn off any fog
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;  // Reset ambient mode
-        
+
         // Force clean up resources to prevent lighting artifacts
         Resources.UnloadUnusedAssets();
         System.GC.Collect();
-        
+
         // Now load the main menu with the transition
         StartCoroutine(LoadLevel("MainMenuScene"));
     }
     // Fix the other quiz loading methods to use the animation coroutine
-    
+
     // End for QUIZ Loading Scenes Code
     #endregion
 
     #region Animations for Loading Levels
 
-    IEnumerator LoadLevel(string sceneName)
+    public IEnumerator LoadLevel(string sceneName)
     {
         // Play the transition animation
         transitionFade.SetTrigger("Start");
