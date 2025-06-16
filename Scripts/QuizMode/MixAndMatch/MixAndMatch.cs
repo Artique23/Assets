@@ -7,6 +7,10 @@ using DG.Tweening; // Add this for DOTween animations
 
 public class MixAndMatch : MonoBehaviour
 {
+    [Header("SFX")]
+    public QuizModeSFX quizModeSFX;// Reference to the QuizModeSFX script
+    private bool timerWarningPlayed = false;
+    public MixAndMatchSFX mixAndMatchSFX;
     [Header("References")]
     public QuizManager quizManager; // Reference to the main quiz manager
     public GameObject quizPanel; // Quiz panel to fade out
@@ -237,7 +241,12 @@ public class MixAndMatch : MonoBehaviour
         {
             // Update timer display
             UpdateTimerDisplay();
-            
+            int secondsLeft = Mathf.CeilToInt(remainingTime);
+            if (secondsLeft == 15 && !timerWarningPlayed && quizModeSFX != null)
+            {
+                quizModeSFX.PlayTimerWarning();
+                timerWarningPlayed = true;
+            }
             // Wait for a frame
             yield return null;
             
@@ -249,6 +258,8 @@ public class MixAndMatch : MonoBehaviour
         remainingTime = 0;
         UpdateTimerDisplay();
         
+        if (quizModeSFX != null)
+        quizModeSFX.StopWarning();
         // Time's up!
         if (!gameEnded)
         {
@@ -372,6 +383,8 @@ public class MixAndMatch : MonoBehaviour
             // Make panel active but position it off-screen first
             summaryPanel.SetActive(true);
             
+                if (mixAndMatchSFX != null)
+                mixAndMatchSFX.PlaySummaryPanelSFX();
             // Get the panel's RectTransform
             RectTransform panelRect = summaryPanel.GetComponent<RectTransform>();
             
@@ -646,13 +659,21 @@ public class MixAndMatch : MonoBehaviour
         while (remainingTime > 0 && !gameEnded)
         {
             UpdateTimerDisplay();
+            int secondsLeft = Mathf.CeilToInt(remainingTime);
+            if (secondsLeft == 15 && !timerWarningPlayed && quizModeSFX != null)
+            {
+                quizModeSFX.PlayTimerWarning();
+                timerWarningPlayed = true;
+            }
             yield return null;
             remainingTime -= Time.deltaTime;
         }
         
         remainingTime = 0;
         UpdateTimerDisplay();
-        
+        if (quizModeSFX != null)
+        quizModeSFX.StopWarning();
+
         if (!gameEnded)
         {
             EndGame();
@@ -662,6 +683,10 @@ public class MixAndMatch : MonoBehaviour
     // Add this new method for fading the instruction panel
     private IEnumerator ShowInstructionPanelWithFade()
     {
+          if (mixAndMatchSFX != null)
+        {
+            mixAndMatchSFX.PlayInstructionAudio();
+        }
         // Make sure the panel is active
         instructionPanel.SetActive(true);
         
