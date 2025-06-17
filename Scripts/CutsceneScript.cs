@@ -36,7 +36,7 @@ public class CutsceneScript : MonoBehaviour
     [SerializeField, ReadOnly] private string timerStatus = "Not Started"; // Current status
 
     [Header("Events")]
-    [SerializeField] private UnityEvent onCutsceneComplete;    // Called when cutscene is exited
+    [SerializeField] public UnityEvent onCutsceneComplete;    // Called when cutscene is exited
 
     private bool hasSkipped = false;
     private bool videoFinished = false;
