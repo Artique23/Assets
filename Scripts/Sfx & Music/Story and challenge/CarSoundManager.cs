@@ -111,6 +111,8 @@ public class CarSoundManager : MonoBehaviour
 
     void Update()
     {
+
+
         if (!carControls.carPoweredOn)
         {
             // If car is off, stop both sounds
