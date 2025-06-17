@@ -166,13 +166,22 @@ public class CarSoundManager : MonoBehaviour
         }
     }
     private void SetSFXGroupAndVolume(AudioSource source)
-{
-    if (source != null && AudioManager.Instance != null && AudioManager.Instance.sfxGroup != null)
     {
-        source.outputAudioMixerGroup = AudioManager.Instance.sfxGroup;
-        source.volume = AudioManager.Instance.sfxVolume;
+        if (source != null && AudioManager.Instance != null && AudioManager.Instance.sfxGroup != null)
+        {
+            source.outputAudioMixerGroup = AudioManager.Instance.sfxGroup;
+            source.volume = AudioManager.Instance.sfxVolume;
+        }
     }
-}
+
+    public void MuteCarSFX(bool mute)
+    {
+        if (audioMixer != null)
+        {
+            // Set to -80 dB (silence) when mute is true, or 0 dB (normal) when false
+            audioMixer.SetFloat("SFXVolume", mute ? -80f : 0f);
+        }
+    }
 }
 
 

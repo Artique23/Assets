@@ -144,6 +144,7 @@ public class CutsceneScript : MonoBehaviour
         // Start playing the video
         if (videoPlayer != null)
         {
+            CarSoundManager.Instance?.MuteCarSFX(true);
             videoPlayer.Play();
             videoStartTime = Time.time;
             timerStatus = "Video playing";
@@ -243,6 +244,7 @@ public class CutsceneScript : MonoBehaviour
             .OnComplete(() => {
                 timerStatus = "Completed";
                 // Invoke any completion events
+                CarSoundManager.Instance?.MuteCarSFX(false);
                 onCutsceneComplete?.Invoke();
                 
                 // Hide the container entirely when done
