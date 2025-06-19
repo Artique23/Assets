@@ -116,6 +116,6 @@ public class ChallengeModeManager : MonoBehaviour
 
         // Timer UI
         if (timerText != null)
-            timerText.text = "Time: " + Mathf.CeilToInt(Mathf.Max(timer, 0));
+            timerText.text = "" + Mathf.CeilToInt(Mathf.Max(timer, 0));
     }
 }
