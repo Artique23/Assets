@@ -213,7 +213,7 @@ public class ParkingZone : MonoBehaviour
                 if (parkedTimer >= minParkTime)
                 {
                     // Success!
-                    StageScoreManager.Instance.AddPoints(100);
+                    StageScoreManager.Instance.AddPoints(1000);
 
                     // Show win panel!
                     ShowWinPanel();

@@ -29,13 +29,13 @@ public class RoundaboutExitEvent : MonoBehaviour
 
             if (hasSignaled)
             {
-                StageScoreManager.Instance.AddPoints(10);
-                stageBaseManager.ShowWade("Great job signaling before exiting the roundabout! (+10 points)");
+                StageScoreManager.Instance.AddPoints(600);
+                stageBaseManager.ShowWade("Great job signaling before exiting the roundabout! (+600 points)");
             }
             else
             {
-                StageScoreManager.Instance.AddPoints(-5);
-                stageBaseManager.ShowWade("You forgot to signal before exiting! (-5 points)");
+                StageScoreManager.Instance.AddPoints(-250);
+                stageBaseManager.ShowWade("You forgot to signal before exiting! (-250 points)");
             }
             StartCoroutine(HideWadeAfterDelayWithReset());
         }

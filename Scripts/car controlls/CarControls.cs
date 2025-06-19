@@ -377,5 +377,10 @@ public class CarControls : MonoBehaviour
             if (tutorialManager != null)
                 tutorialManager.ShowWade("Don't crash into other cars! -50 points");
         }
+        else if (collision.gameObject.CompareTag("Environment"))
+        {
+            StageScoreManager.Instance.AddPoints(-20);
+            tutorialManager?.ShowWade("Careful! You hit the environment! -20 points");
+        }
     }
 }

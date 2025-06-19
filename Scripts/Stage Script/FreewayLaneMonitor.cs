@@ -21,12 +21,12 @@ public class FreewayLaneMonitor : MonoBehaviour
                     (carLightController.LeftSignalIsOn() || carLightController.RightSignalIsOn());
                 if (signaled)
                 {
-                    StageScoreManager.Instance.AddPoints(10);
+                    StageScoreManager.Instance.AddPoints(100);
                     stageBaseManager.ShowWade("Good job! You signaled before changing lanes. (+10)");
                 }
                 else
                 {
-                    StageScoreManager.Instance.AddPoints(-10);
+                    StageScoreManager.Instance.AddPoints(-100);
                     stageBaseManager.ShowWade("You changed lanes without signaling! (-10)");
                 }
                 Debug.Log("Switched from " + currentLane + " to " + other.name + (signaled ? " WITH SIGNAL" : " NO SIGNAL"));

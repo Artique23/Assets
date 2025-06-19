@@ -19,26 +19,21 @@ public class CarlightController : MonoBehaviour
     private Coroutine hazardCoroutine;
     private Coroutine leftSignalCoroutine;
     private Coroutine rightSignalCoroutine;
+    private Coroutine leftSignalAutoOffCoroutine;
+    private Coroutine rightSignalAutoOffCoroutine;
 
-    // State tracking for toggles
     private bool headlightsOn = false;
     private bool leftSignalOn = false;
     private bool rightSignalOn = false;
     private bool hazardsOn = false;
 
-
-
-    // ---- UI BUTTONS SHOULD CALL THESE ----
-
     void Start()
     {
-        // Ensure all booleans are false
         headlightsOn = false;
         leftSignalOn = false;
         rightSignalOn = false;
         hazardsOn = false;
 
-        // Make sure all lights are off at start
         if (headlightLeft) headlightLeft.enabled = false;
         if (headlightRight) headlightRight.enabled = false;
         if (tailLightLeft) tailLightLeft.enabled = false;
@@ -56,7 +51,6 @@ public class CarlightController : MonoBehaviour
 
     private IEnumerator FlashAllLightsCoroutine(float duration)
     {
-        // Save the original state of each light
         bool headlightLeftState = headlightLeft && headlightLeft.enabled;
         bool headlightRightState = headlightRight && headlightRight.enabled;
         bool tailLightLeftState = tailLightLeft && tailLightLeft.enabled;
@@ -67,7 +61,6 @@ public class CarlightController : MonoBehaviour
         bool turnSignalRightState = turnSignalRight && turnSignalRight.enabled;
         bool reverseLightState = reverseLight && reverseLight.enabled;
 
-        // Turn all on (check for null to avoid errors)
         if (headlightLeft) headlightLeft.enabled = true;
         if (headlightRight) headlightRight.enabled = true;
         if (tailLightLeft) tailLightLeft.enabled = true;
@@ -80,7 +73,6 @@ public class CarlightController : MonoBehaviour
 
         yield return new WaitForSeconds(duration);
 
-        // Restore previous state
         if (headlightLeft) headlightLeft.enabled = headlightLeftState;
         if (headlightRight) headlightRight.enabled = headlightRightState;
         if (tailLightLeft) tailLightLeft.enabled = tailLightLeftState;
@@ -92,13 +84,11 @@ public class CarlightController : MonoBehaviour
         if (reverseLight) reverseLight.enabled = reverseLightState;
     }
 
-
     public void SetReverseLight(bool on)
     {
         if (reverseLight != null)
             reverseLight.enabled = on;
     }
-
 
     public void ToggleHeadlights()
     {
@@ -124,9 +114,6 @@ public class CarlightController : MonoBehaviour
         ToggleHazards(hazardsOn);
     }
 
-    // ---- INTERNAL CONTROL FUNCTIONS ----
-
-    // Headlights
     public void ToggleHeadlights(bool on)
     {
         headlightLeft.enabled = on;
@@ -135,20 +122,28 @@ public class CarlightController : MonoBehaviour
         tailLightRight.enabled = on;
     }
 
-    // Brake Lights
     public void SetBrakeLights(bool on)
     {
         brakeLightLeft.enabled = on;
         brakeLightRight.enabled = on;
     }
 
-    // Turn Signals
     public void ToggleLeftSignal(bool on)
     {
         if (on)
         {
+            if (rightSignalOn)
+            {
+                rightSignalOn = false;
+                ToggleRightSignal(false);
+            }
+
             if (leftSignalCoroutine == null)
                 leftSignalCoroutine = StartCoroutine(BlinkLight(turnSignalLeft));
+
+            if (leftSignalAutoOffCoroutine != null)
+                StopCoroutine(leftSignalAutoOffCoroutine);
+            leftSignalAutoOffCoroutine = StartCoroutine(AutoTurnOffLeftSignal());
         }
         else
         {
@@ -158,27 +153,33 @@ public class CarlightController : MonoBehaviour
                 leftSignalCoroutine = null;
             }
             turnSignalLeft.enabled = false;
+
+            if (leftSignalAutoOffCoroutine != null)
+            {
+                StopCoroutine(leftSignalAutoOffCoroutine);
+                leftSignalAutoOffCoroutine = null;
+            }
         }
-    }
 
-    // Add these public getters to expose the signal states:
-    public bool LeftSignalIsOn()
-    {
-        return leftSignalOn;
+        leftSignalOn = on;
     }
-
-    public bool RightSignalIsOn()
-    {
-        return rightSignalOn;
-    }
-
 
     public void ToggleRightSignal(bool on)
     {
         if (on)
         {
+            if (leftSignalOn)
+            {
+                leftSignalOn = false;
+                ToggleLeftSignal(false);
+            }
+
             if (rightSignalCoroutine == null)
                 rightSignalCoroutine = StartCoroutine(BlinkLight(turnSignalRight));
+
+            if (rightSignalAutoOffCoroutine != null)
+                StopCoroutine(rightSignalAutoOffCoroutine);
+            rightSignalAutoOffCoroutine = StartCoroutine(AutoTurnOffRightSignal());
         }
         else
         {
@@ -188,10 +189,17 @@ public class CarlightController : MonoBehaviour
                 rightSignalCoroutine = null;
             }
             turnSignalRight.enabled = false;
+
+            if (rightSignalAutoOffCoroutine != null)
+            {
+                StopCoroutine(rightSignalAutoOffCoroutine);
+                rightSignalAutoOffCoroutine = null;
+            }
         }
+
+        rightSignalOn = on;
     }
 
-    // Hazards
     public void ToggleHazards(bool on)
     {
         if (on)
@@ -229,5 +237,27 @@ public class CarlightController : MonoBehaviour
             turnSignalRight.enabled = state;
             yield return new WaitForSeconds(0.5f);
         }
+    }
+
+    private IEnumerator AutoTurnOffLeftSignal()
+    {
+        yield return new WaitForSeconds(5f);
+        ToggleLeftSignal(false);
+    }
+
+    private IEnumerator AutoTurnOffRightSignal()
+    {
+        yield return new WaitForSeconds(5f);
+        ToggleRightSignal(false);
+    }
+
+    public bool LeftSignalIsOn()
+    {
+        return leftSignalOn;
+    }
+
+    public bool RightSignalIsOn()
+    {
+        return rightSignalOn;
     }
 }
