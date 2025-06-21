@@ -766,6 +766,11 @@ public PanelMovement panelMovementScript;
     {
         isShowingFeedback = true;
 
+        if(quizModeSFX != null)
+        {
+            quizModeSFX.StopWarning();
+        }
+
         // Disable all answer buttons to prevent multiple answers
         foreach (var option in options)
         {
