@@ -22,14 +22,14 @@ public class LaneTrigger : MonoBehaviour
                 bool signaled = carLight != null && (carLight.LeftSignalIsOn() || carLight.RightSignalIsOn());
                 if (signaled)
                 {
-                    StageScoreManager.Instance.AddPoints(10);
-                    stageBaseManager.ShowWade("Good job! You signaled before changing lanes. (+10)");
+                    StageScoreManager.Instance.AddPoints(100);
+                    stageBaseManager.ShowWade("Good job! You signaled before changing lanes. (+100)");
                     StartCoroutine(HideWadeAfterDelay(1f)); // Hide after 1 second
                 }
                 else
                 {
-                    StageScoreManager.Instance.AddPoints(-10);
-                    stageBaseManager.ShowWade("You changed lanes without signaling! (-10)");
+                    StageScoreManager.Instance.AddPoints(-100);
+                    stageBaseManager.ShowWade("You changed lanes without signaling! (-100)");
                     StartCoroutine(HideWadeAfterDelay(1f)); // Hide after 1 second
                 }
                 Debug.Log("Player switched from lane " + lastLane + " to lane " + laneIndex + (signaled ? " WITH SIGNAL" : " NO SIGNAL"));
