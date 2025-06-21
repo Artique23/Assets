@@ -383,7 +383,7 @@ public PanelMovement panelMovementScript;
 
 
         public void retryQuiz()
-    {
+        {
         // Make sure we have a reference to the LevelLoader
         if (levelLoader == null)
         {
@@ -496,6 +496,9 @@ public PanelMovement panelMovementScript;
 
         // Start the animation sequence
         StartCoroutine(AnimateSummaryPanel());
+        
+        // Award currency based on quiz performance - add this line
+        AwardCurrencyForQuizCompletion();
     }
 
     // Helper method to set alpha for UI elements
@@ -1350,5 +1353,46 @@ public PanelMovement panelMovementScript;
         
         Debug.Log($"Quiz timer paused with {pausedTimeRemaining} seconds remaining");
     }
+
+    // Add this method to your QuizManager class at the end of the gameOver() method
+private void AwardCurrencyForQuizCompletion()
+{
+    // Calculate stars earned based on score thresholds
+    int starsEarned = 0;
+    
+    if (scoreCount >= star1Threshold)
+        starsEarned++;
+    
+    if (scoreCount >= star2Threshold)
+        starsEarned++;
+    
+    if (scoreCount >= star3Threshold)
+        starsEarned++;
+    
+    if (star4 != null && scoreCount >= star4Threshold)
+        starsEarned++;
+    
+    // Log the stars earned for debugging
+    Debug.Log($"Quiz completed! Player earned {starsEarned} stars that will be added to currency.");
+    
+    // Add stars to player currency
+    if (PlayerManager.Instance != null)
+    {
+        // Get current currency before adding
+        int previousCurrency = PlayerManager.Instance.GetCurrency();
+        
+        // Add the stars to player's currency
+        PlayerManager.Instance.AddCurrency(starsEarned);
+        
+        // Get new currency for display
+        int newCurrency = PlayerManager.Instance.GetCurrency();
+        
+        Debug.Log($"Stars added to player currency: {starsEarned}. Previous: {previousCurrency}, New: {newCurrency}");
+    }
+    else
+    {
+        Debug.LogWarning("PlayerManager not found! Stars earned were not added to currency.");
+    }
+}
 }
 
