@@ -21,7 +21,7 @@ public class CarControls : MonoBehaviour
 
     [Header("Car Engine")]
     public float accelerationForce = 1500f;
-    public float brakeForce = 3000f;
+    public float brakeForce = 8000f;
     public float speedLimit = 10; // 60 km/h
     public float accelerationSmoothing = 5f;
 
@@ -157,13 +157,19 @@ public class CarControls : MonoBehaviour
         }
 
         // Smoother acceleration
-        currentAcceleration = Mathf.Lerp(currentAcceleration, targetAcceleration, Time.deltaTime * accelerationSmoothing);
+        // In Movecar()
+        currentAcceleration = Mathf.Lerp(currentAcceleration, targetAcceleration, Time.deltaTime * (accelerationSmoothing * 2f));
+
         presentAcceleration = currentAcceleration;
 
+        // Apply only to front wheels for FWD
         frontLeftWheelCollider.motorTorque = presentAcceleration;
         frontRightWheelCollider.motorTorque = presentAcceleration;
-        rearLeftWheelCollider.motorTorque = presentAcceleration;
-        rearRightWheelCollider.motorTorque = presentAcceleration;
+
+        // Remove from rear
+        rearLeftWheelCollider.motorTorque = 0f;
+        rearRightWheelCollider.motorTorque = 0f;
+
     }
 
 
@@ -230,9 +236,9 @@ public class CarControls : MonoBehaviour
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
-            if (brakeInput > 0 && rb.velocity.magnitude > 1f)
+            if (brakeInput > 0 && rb.velocity.magnitude > 0.5f)
             {
-                rb.drag = 2f; // Tweak as needed
+                rb.drag = 5f; // Tweak as needed for instant response
             }
             else
             {
@@ -370,6 +376,11 @@ public class CarControls : MonoBehaviour
             StageScoreManager.Instance.AddPoints(-50);
             if (tutorialManager != null)
                 tutorialManager.ShowWade("Don't crash into other cars! -50 points");
+        }
+        else if (collision.gameObject.CompareTag("Environment"))
+        {
+            StageScoreManager.Instance.AddPoints(-20);
+            tutorialManager?.ShowWade("Careful! You hit the environment! -20 points");
         }
     }
 }

@@ -7,8 +7,8 @@ public class TrafficLightZone : MonoBehaviour
     public RedLightStatus redLightStatus; // Assign the correct RedLightStatus (the light for the player's lane)
     public StageBaseManager tutorialManager; // For Wade hints
     public float requiredWaitTime = 2f;
-    public int rewardPoints = 100;
-    public int penaltyPoints = -50;
+    public int rewardPoints = 500;
+    public int penaltyPoints = -100;
 
     private bool playerInside = false;
     private float waitTimer = 0f;
