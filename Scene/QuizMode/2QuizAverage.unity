@@ -4717,6 +4717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e481163155a894045a88adf54e74b1ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  levelLoader: {fileID: 0}
   QnA:
   - Question: What is the correct order of priority at a four-way intersection when
       all vehicles arrive at the same time?

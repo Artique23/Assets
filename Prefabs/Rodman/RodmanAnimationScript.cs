@@ -45,7 +45,7 @@ public class RodmanAnimationScript : MonoBehaviour
             if (!isAnimating)
             {
                 // Wait for 8 seconds of idle
-                yield return new WaitForSeconds(6.5f);
+                yield return new WaitForSeconds(6f);
 
                 // Choose and play random animation
                 int randomIndex = Random.Range(0, animations.Length);
