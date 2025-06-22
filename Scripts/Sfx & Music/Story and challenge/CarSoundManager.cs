@@ -155,6 +155,22 @@ public class CarSoundManager : MonoBehaviour
     private void ToggleLoopAudio(AudioSource source, ref bool state)
     {
         if (source == null) return;
+    if (source != HazardSource && HazardSource.isPlaying)
+    {
+        HazardSource.Stop();
+        hazardsActive = false;
+    }
+    if (source != LeftSignalSource && LeftSignalSource.isPlaying)
+    {
+        LeftSignalSource.Stop();
+        leftSignalActive = false;
+    }
+    if (source != RightSignalSource && RightSignalSource.isPlaying)
+    {
+        RightSignalSource.Stop();
+        rightSignalActive = false;
+    }
+
         state = !state;
         if (state) source.Play();
         else source.Stop();
