@@ -35,6 +35,8 @@ public class ParkingZone : MonoBehaviour
     public float emissionMin = 0.5f;
     public float emissionMax = 2f;
 
+    public bool canCheckParking = false;
+
     [Header("Win Panel")]
 
     public Canvas winPanelCanvas; // Assign in Inspector
