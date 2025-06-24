@@ -30,10 +30,10 @@ public class CutsceneScript : MonoBehaviour
     [SerializeField] private bool countFromVideoStart = true;  // If true, counts from video start. If false, counts from scene load
 
     [Header("Timer Info (Read-Only)")]
-    [SerializeField, ReadOnly] private float currentTime = 0f; // Current timer in seconds
-    [SerializeField, ReadOnly] private float videoDuration = 0f; // Total video duration in seconds
-    [SerializeField, ReadOnly] private float timeUntilFade = 0f; // Time remaining until auto-fade
-    [SerializeField, ReadOnly] private string timerStatus = "Not Started"; // Current status
+    [SerializeField] private float currentTime = 0f; // Current timer in seconds
+    [SerializeField] private float videoDuration = 0f; // Total video duration in seconds
+    [SerializeField] private float timeUntilFade = 0f; // Time remaining until auto-fade
+    [SerializeField] private string timerStatus = "Not Started"; // Current status
 
     [Header("Events")]
     [SerializeField] public UnityEvent onCutsceneComplete;    // Called when cutscene is exited
