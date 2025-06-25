@@ -28,17 +28,17 @@ public class LevelLoader : MonoBehaviour
     public void LoadLevel2()
     {
         Debug.Log("Loaded Level 2...");
-        SceneManager.LoadScene("Stage 2");
+        StartCoroutine(LoadLevel("Stage 2"));
     }
     public void LoadLevel3()
     {
         Debug.Log("Loaded Level 3...");
-        SceneManager.LoadScene("Level3Scene");
+        StartCoroutine(LoadLevel("Stage 3"));
     }
     public void LoadLevel4()
     {
         Debug.Log("Loaded Level 4...");
-        SceneManager.LoadScene("Level4Scene");
+        StartCoroutine(LoadLevel("Stage 4"));
     }
     public void LoadLevel5()
     {

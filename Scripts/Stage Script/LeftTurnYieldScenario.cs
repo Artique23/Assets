@@ -10,8 +10,8 @@ public class LeftTurnYieldScenario : MonoBehaviour
     public float dangerZone = 15f;  // Distance to consider "too close"
     public float waitTimeThreshold = 1.5f; // How long the player should wait in the zone
 
-    public int rewardPoints = 100;
-    public int penaltyPoints = -50;
+    public int rewardPoints = 200;
+    public int penaltyPoints = -100;
     public int playerScore = 0; // Replace with your global score manager if you have one
 
     private bool playerInZone = false;
