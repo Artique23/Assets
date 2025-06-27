@@ -353,18 +353,26 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         return currentDisplayIndex;
     }
     
-    public void SetCarColorIndex(int colorIndex)
+public void SetCarColorIndex(int colorIndex)
 {
     if (currentDisplayIndex < 0 || currentDisplayIndex >= carCatalog.Length)
         return;
 
-    // Clamp color index and update
     int maxIndex = carCatalog[currentDisplayIndex].colorVariants.Length - 1;
-    selectedColorIndices[currentDisplayIndex] = Mathf.Clamp(colorIndex, 0, maxIndex);
+    int clampedIndex = Mathf.Clamp(colorIndex, 0, maxIndex);
+
+    selectedColorIndices[currentDisplayIndex] = clampedIndex;
+
+    // 🔥 Save it to PlayerManager
+    PlayerManager.Instance.SetCarColorIndex(currentDisplayIndex, clampedIndex);
 
     // Re-display car with new color
     DisplayCurrentCar();
+
+    
+    PlayerManager.Instance.SavePlayerData();
 }
+
 
     #endregion
 }

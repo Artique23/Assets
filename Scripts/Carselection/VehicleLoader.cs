@@ -21,17 +21,7 @@ public class VehicleLoader : MonoBehaviour
         int selectedColor = PlayerManager.Instance.GetCarColorIndex(selectedIndex); // Add this method to your PlayerManager
 
         // Safety check
-        if (selectedIndex < 0 || selectedIndex >= carCatalog.Length)
-        {
-            Debug.LogWarning("❗ Invalid car index, defaulting to 0");
-            selectedIndex = 0;
-        }
 
-    if (selectedColor < 0 || selectedColor >= carCatalog[selectedIndex].colorVariants.Length)
-    {
-        Debug.LogWarning("❗ Invalid color index, defaulting to 3");
-        selectedColor = 3;
-    }
 
         // Instantiate selected color variant of selected car
         GameObject carModelToSpawn = carCatalog[selectedIndex].colorVariants[selectedColor];

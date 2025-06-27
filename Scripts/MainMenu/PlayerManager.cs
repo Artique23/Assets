@@ -7,6 +7,8 @@ using System.IO;
 public class PlayerManager : MonoBehaviour
 {
     // This is a Singleton pattern - it means there's only one PlayerManager in the whole game
+    private Dictionary<int, int> selectedCarColors = new Dictionary<int, int>();
+    public List<int> selectedCarColorIndices;
     public static PlayerManager Instance { get; private set; }
     private int[] selectedColorIndices;
     // Player information
@@ -44,6 +46,7 @@ public class PlayerManager : MonoBehaviour
             Debug.Log("Updated currency to: " + playerCurrency);
         }
     }
+
 
     void Awake()
     {
@@ -85,21 +88,20 @@ public class PlayerManager : MonoBehaviour
         Debug.Log("Save file is at: " + saveFilePath);
     }
     
-        public int GetCarColorIndex(int carIndex)
+    public int GetCarColorIndex(int carIndex)
     {
-        if (selectedColorIndices == null || carIndex < 0 || carIndex >= selectedColorIndices.Length)
-            return 0; // fallback to default color
-
-        return selectedColorIndices[carIndex];
+        if (!selectedCarColors.ContainsKey(carIndex))
+        {
+            selectedCarColors[carIndex] = 3; // ✅ Default to 4th color
+        }
+        return selectedCarColors[carIndex];
     }
 
     public void SetCarColorIndex(int carIndex, int colorIndex)
     {
-        if (selectedColorIndices == null || carIndex < 0 || carIndex >= selectedColorIndices.Length)
-            return;
-
-        selectedColorIndices[carIndex] = colorIndex;
+        selectedCarColors[carIndex] = colorIndex;
     }
+
     // Functions for other scripts to use
 
     public int GetCurrency()
@@ -192,80 +194,86 @@ public class PlayerManager : MonoBehaviour
     
     // Save & Load functions
     
-    private void SavePlayerData()
+public void SavePlayerData()
+{
+    try
     {
-        try
+        // Create a new PlayerSaveData object with our current values
+        PlayerSaveData data = new PlayerSaveData
         {
-            // Create a new PlayerSaveData object with our current values
-            PlayerSaveData data = new PlayerSaveData
-            {
-                currency = playerCurrency,
-                carsUnlocked = carsUnlocked,
-                unlockedCars = unlockedCars,
-                selectedCarIndex = selectedCar
-            };
-            
-            // Convert it to JSON text
-            string jsonData = JsonUtility.ToJson(data, true);
-            
-            // Save to file
-            File.WriteAllText(saveFilePath, jsonData);
-            
-            Debug.Log("Player data saved successfully!");
+            currency = playerCurrency,
+            carsUnlocked = carsUnlocked,
+            unlockedCars = unlockedCars,
+            selectedCarIndex = selectedCar,
+            selectedCarColorIndices = new List<int>()
+        };
+
+        for (int i = 0; i < unlockedCars.Length; i++)
+        {
+            int colorIndex = GetCarColorIndex(i);
+            data.selectedCarColorIndices.Add(colorIndex);
         }
-        catch (System.Exception e)
+
+        // Convert it to JSON text
+        string jsonData = JsonUtility.ToJson(data, true);
+
+        // Save to file
+        File.WriteAllText(saveFilePath, jsonData);
+
+        Debug.Log("Player data saved successfully!");
+    }
+    catch (System.Exception e)
+    {
+        Debug.LogError("Failed to save player data: " + e.Message);
+    }
+}
+private void LoadPlayerData()
+{
+    try
+    {
+        if (File.Exists(saveFilePath))
         {
-            Debug.LogError("Failed to save player data: " + e.Message);
+            string jsonData = File.ReadAllText(saveFilePath);
+            PlayerSaveData data = JsonUtility.FromJson<PlayerSaveData>(jsonData);
+
+            playerCurrency = data.currency;
+            carsUnlocked = data.carsUnlocked;
+
+            if (data.unlockedCars != null && data.unlockedCars.Length > 0)
+            {
+                int count = Mathf.Min(unlockedCars.Length, data.unlockedCars.Length);
+                for (int i = 0; i < count; i++)
+                {
+                    unlockedCars[i] = data.unlockedCars[i];
+                }
+            }
+
+            if (data.selectedCarIndex >= 0 && data.selectedCarIndex < unlockedCars.Length)
+            {
+                selectedCar = data.selectedCarIndex;
+            }
+
+            // ✅ Load color data
+            if (data.selectedCarColorIndices != null)
+            {
+                for (int i = 0; i < data.selectedCarColorIndices.Count; i++)
+                {
+                    selectedCarColors[i] = data.selectedCarColorIndices[i];
+                }
+            }
+
+            Debug.Log("Player data loaded successfully! Currency: " + playerCurrency);
+        }
+        else
+        {
+            Debug.Log("No save file found. Using default values.");
         }
     }
-    
-    private void LoadPlayerData()
+    catch (System.Exception e)
     {
-        try
-        {
-            // Check if save file exists
-            if (File.Exists(saveFilePath))
-            {
-                // Read the file contents
-                string jsonData = File.ReadAllText(saveFilePath);
-                
-                // Convert JSON text back to data
-                PlayerSaveData data = JsonUtility.FromJson<PlayerSaveData>(jsonData);
-                
-                // Apply the loaded values
-                playerCurrency = data.currency;
-                carsUnlocked = data.carsUnlocked;
-                
-                // Copy the unlock states if available
-                if (data.unlockedCars != null && data.unlockedCars.Length > 0)
-                {
-                    // Make sure array sizes match
-                    int count = Mathf.Min(unlockedCars.Length, data.unlockedCars.Length);
-                    
-                    for (int i = 0; i < count; i++)
-                    {
-                        unlockedCars[i] = data.unlockedCars[i];
-                    }
-                }
-                
-                // Set selected car
-                if (data.selectedCarIndex >= 0 && data.selectedCarIndex < unlockedCars.Length)
-                {
-                    selectedCar = data.selectedCarIndex;
-                }
-                
-                Debug.Log("Player data loaded successfully! Currency: " + playerCurrency);
-            }
-            else
-            {
-                Debug.Log("No save file found. Using default values.");
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Failed to load player data: " + e.Message);
-        }
+        Debug.LogError("Failed to load player data: " + e.Message);
     }
+}
 
     // Add this method to your PlayerManager class
     public void Add10Currency()
@@ -299,4 +307,5 @@ public class PlayerSaveData
     public int carsUnlocked;
     public bool[] unlockedCars;
     public int selectedCarIndex;
+    public List<int> selectedCarColorIndices;
 }
