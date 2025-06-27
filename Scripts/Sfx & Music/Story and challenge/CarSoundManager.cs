@@ -169,6 +169,7 @@ public class CarSoundManager : MonoBehaviour
     {
         RightSignalSource.Stop();
         rightSignalActive = false;
+        
     }
 
         state = !state;

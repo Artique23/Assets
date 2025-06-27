@@ -98,7 +98,7 @@ public class CutsceneScript : MonoBehaviour
     private void OnVideoPrepared(VideoPlayer vp)
     {
         videoDuration = (float)vp.length;
-        Debug.Log($"Video prepared. Duration: {videoDuration} seconds");
+        
     }
 
     private void Start()
@@ -147,7 +147,7 @@ public class CutsceneScript : MonoBehaviour
             videoPlayer.Play();
             videoStartTime = Time.time;
             timerStatus = "Video playing";
-            Debug.Log("Video started playing at time: " + videoStartTime);
+            
             
             // Start auto fade timer if counting from video start
             if (useAutoFade && countFromVideoStart)
@@ -170,7 +170,7 @@ public class CutsceneScript : MonoBehaviour
                         .SetEase(Ease.InOutQuad)
                         .OnComplete(() => {
                             actionButton.interactable = true;
-                            Debug.Log("Action button is now interactable");
+                            
                         });
                 }
             }
@@ -180,7 +180,7 @@ public class CutsceneScript : MonoBehaviour
     private IEnumerator AutoFadeAfterDelay(float delay)
     {
         float startTime = Time.time;
-        Debug.Log($"Auto-fade will trigger in {delay} seconds (at time: {startTime + delay})");
+
         
         // Update timer until fade occurs
         while (Time.time < startTime + delay && !hasSkipped)
@@ -192,7 +192,6 @@ public class CutsceneScript : MonoBehaviour
         if (!hasSkipped)
         {
             timerStatus = "Auto-fade triggered";
-            Debug.Log("Auto-fade timer complete, fading out cutscene");
             FadeOutCutscene();
         }
     }
@@ -210,7 +209,6 @@ public class CutsceneScript : MonoBehaviour
             actionButton.interactable = true;
         }
         
-        Debug.Log("Video finished");
     }
 
     public void OnButtonClick()
@@ -249,7 +247,6 @@ public class CutsceneScript : MonoBehaviour
                 gameObject.SetActive(false);
             });
             
-        Debug.Log("Cutscene " + (videoFinished ? "completed" : "skipped"));
     }
 
     private void OnDisable()

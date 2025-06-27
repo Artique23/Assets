@@ -19,7 +19,7 @@ public class RoundaboutExitEvent : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        Debug.Log("Player exited the roundabout exit trigger!"); // Debug line
+        
 
         if (other.CompareTag("Player"))
         {
