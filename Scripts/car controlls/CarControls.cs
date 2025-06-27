@@ -54,6 +54,13 @@ public class CarControls : MonoBehaviour
     [Header("UI")]
     public TMP_Text speedometerText; // Assign in inspector
 
+    [Header("Lose Condition")]
+    public GameObject losePanel; // Assign in inspector
+    private int autonomousVehicleHits = 0;
+    public int maxAllowedHits = 3;
+    private bool hasLost = false;
+
+
     // Turn signal state
     public bool leftSignalOn { get; private set; } = false;
     public bool rightSignalOn { get; private set; } = false;
@@ -66,7 +73,7 @@ public class CarControls : MonoBehaviour
 
     public float currentUISpeedKmh { get; private set; } = 0f;
 
-    public StageBaseManager stageBaseManager; 
+    public StageBaseManager stageBaseManager;
 
     public Stage1TutorialManager tutorialManager; // Drag Wade's manager in the inspector
 
@@ -377,16 +384,48 @@ public class CarControls : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("AutonomousVehicle"))
+        if (hasLost) return; // prevent repeated triggers
+
+        if (collision.gameObject.CompareTag("NPC"))
         {
+            Debug.Log("Hit an NPC — immediate loss.");
+            TriggerLose("You hit a pedestrian!");
+        }
+        else if (collision.gameObject.CompareTag("AutonomousVehicle"))
+        {
+            autonomousVehicleHits++;
             StageScoreManager.Instance.AddPoints(-50);
             if (stageBaseManager != null)
                 stageBaseManager.ShowWade("Don't crash into other cars! -50 points");
+
+            if (autonomousVehicleHits >= maxAllowedHits)
+            {
+                TriggerLose("Too many vehicle collisions!");
+            }
         }
         else if (collision.gameObject.CompareTag("Environment"))
         {
             StageScoreManager.Instance.AddPoints(-20);
-            stageBaseManager.ShowWade("Careful! You hit the environment! -20 points");
+            if (stageBaseManager != null)
+                stageBaseManager.ShowWade("Careful! You hit the environment! -20 points");
         }
     }
+
+    void TriggerLose(string message)
+    {
+        hasLost = true;
+
+        Debug.Log("LOSE: " + message);
+
+        if (losePanel != null)
+            losePanel.SetActive(true);
+
+        // Optionally stop the car
+        carPoweredOn = false;
+
+        if (stageBaseManager != null)
+            stageBaseManager.ShowWade(message);
+    }
+
+
 }
