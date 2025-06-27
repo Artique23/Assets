@@ -87,6 +87,8 @@ public class QuizManager : MonoBehaviour
     public int star3Threshold = 900; // Score needed for third star
     public int star4Threshold = 1200; // Score needed for fourth star (optional)
     public GameObject star4; // Reference to the fourth star (optional)
+    public int star5Threshold = 1500; // Score needed for fifth star
+    public GameObject star5; // Reference to the fifth star
 
     [Header("Button Animation Settings")]
     public float correctButtonScaleMultiplier = 1.2f; // Button will scale to 120% of original size
@@ -628,6 +630,30 @@ public PanelMovement panelMovementScript;
             else
             {
                 Debug.LogError("Star 4 is missing CanvasGroup component!");
+            }
+        }
+
+        // Fifth star - only if it exists and threshold is met
+        if (star5 != null && scoreCount >= star5Threshold)
+        {
+            // First activate the star5 object
+            star5.SetActive(true);
+            
+            CanvasGroup star5Group = star5.GetComponent<CanvasGroup>();
+            if (star5Group != null)
+            {
+                Debug.Log("Fading in star 5");
+                star5Group.alpha = 0; // Ensure it starts invisible
+                star5Group.DOFade(1, elementFadeDuration).SetEase(fadeEaseType);
+                
+                // Special effect for highest star - more pronounced than star4
+                star5.transform.DOPunchScale(new Vector3(0.3f, 0.3f, 0.3f), 0.5f, 6, 0.6f);
+                
+                yield return new WaitForSeconds(delayBetweenElements);
+            }
+            else
+            {
+                Debug.LogError("Star 5 is missing CanvasGroup component!");
             }
         }
 
@@ -1208,6 +1234,10 @@ public PanelMovement panelMovementScript;
             if (star4 != null && star4.GetComponent<CanvasGroup>() == null)
                 star4.AddComponent<CanvasGroup>();
 
+            // Add this for the 5th star - check if it exists first
+            if (star5 != null && star5.GetComponent<CanvasGroup>() == null)
+                star5.AddComponent<CanvasGroup>();
+
             if (retryButton != null && retryButton.GetComponent<CanvasGroup>() == null)
                 retryButton.AddComponent<CanvasGroup>();
 
@@ -1375,6 +1405,9 @@ private void AwardCurrencyForQuizCompletion()
         starsEarned++;
     
     if (star4 != null && scoreCount >= star4Threshold)
+        starsEarned++;
+        
+    if (star5 != null && scoreCount >= star5Threshold)
         starsEarned++;
     
     // Log the stars earned for debugging
