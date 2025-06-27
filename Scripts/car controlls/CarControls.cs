@@ -386,7 +386,7 @@ public class CarControls : MonoBehaviour
         else if (collision.gameObject.CompareTag("Environment"))
         {
             StageScoreManager.Instance.AddPoints(-20);
-                stageBaseManager.ShowWade("Careful! You hit the environment! -20 points");
+            stageBaseManager.ShowWade("Careful! You hit the environment! -20 points");
         }
     }
 }
