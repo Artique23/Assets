@@ -1,121 +1,115 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 public class ChallengeModeManager : MonoBehaviour
 {
-    [Header("Challenge Settings")]
-    public int startingLives = 3;
-    public float challengeTime = 120f;
+    [Header("UI & References")]
+    public CarControls carControls;
+    public Button acceleratorButton;
+    public Button brakeButton;
+    public Image steeringWheelImage;
+    public GameObject[] allOtherUIButtons;
 
-    [Header("Objective Markers and Parking")]
-    public GameObject[] objectiveMarkers; // Assign 3 in Inspector
-    public GameObject parkingZone;        // Assign in Inspector (set inactive initially)
+    [Header("Gear Shift UI")]
+    public Slider gearShiftSlider;
+    public Image gearShiftImage;
+    public TMP_Text scoreText;
 
-    [Header("UI (Stars, Score, Timer)")]
-    public Image[] lifeImages;        // Assign 3 star images, left to right
-    public TMP_Text timerText;        // (Optional) Timer display
-    public TMP_Text scoreText;        // Score display
+    [Header("Timer & Lives")]
+    public StageTimerManager timerManager;
+    public float timeRewardPerObjective = 10f;
+    public int maxLives = 3;
+    private int currentLives;
+    public Image[] lifeIcons; // NEW: array of images for lives
 
-    private int playerLives;
-    private float timer;
-    private int collected = 0;
-    private bool gameActive = false;
-    private bool parkingActivated = false;
+    [Header("Objectives & Parking")]
+    public GameObject[] objectiveMarkers;
+    public ParkingZone parkingZone;
+    private int currentObjectiveIndex = 0;
 
     void Start()
     {
-        playerLives = startingLives;
-        timer = challengeTime;
-        collected = 0;
-        gameActive = true;
-        parkingActivated = false;
-        // StageScoreManager.Instance.ResetPoints(); // Remove this line if not implemented
+        currentLives = maxLives;
+        UpdateLivesUI();
 
-        foreach (var obj in objectiveMarkers)
-            obj.SetActive(true);
-
-        if (parkingZone != null)
-            parkingZone.SetActive(false);
-
-        UpdateUI();
+        carControls.carPoweredOn = true;
+        ShowAllControls();
+        ActivateCurrentObjective();
     }
 
     void Update()
     {
-        if (!gameActive) return;
-
-        timer -= Time.deltaTime;
-        UpdateUI();
-
-        if (timer <= 0f)
-        {
-            LoseGame();
-        }
-    }
-
-    // Called by objective markers when collected
-    public void CollectObjective(GameObject marker)
-    {
-        marker.SetActive(false);
-        collected++;
-        if (collected >= objectiveMarkers.Length)
-        {
-            ActivateParking();
-        }
-    }
-
-    void ActivateParking()
-    {
-        if (parkingActivated) return;
-        parkingActivated = true;
-        if (parkingZone != null)
-            parkingZone.SetActive(true);
-    }
-
-    // Called by scenario scripts to penalize
-    public void LoseLife()
-    {
-        if (!gameActive) return;
-        playerLives--;
-        UpdateUI();
-        if (playerLives <= 0)
-        {
-            LoseGame();
-        }
-    }
-
-    // Called by scenario scripts to reward
-    public void AddChallengePoints(int amount)
-    {
-        StageScoreManager.Instance.AddPoints(amount);
-        UpdateUI();
-    }
-
-    void LoseGame()
-    {
-        gameActive = false;
-        // Optionally: Show a "Game Over" screen or disable controls
-    }
-
-    void UpdateUI()
-    {
-        // Life stars: turn off a star for each life lost
-        if (lifeImages != null && lifeImages.Length > 0)
-        {
-            for (int i = 0; i < lifeImages.Length; i++)
-            {
-                if (lifeImages[i] != null)
-                    lifeImages[i].gameObject.SetActive(i < playerLives);
-            }
-        }
-
-        // Score UI
         if (scoreText != null)
             scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
+    }
 
-        // Timer UI
-        if (timerText != null)
-            timerText.text = "Time: " + Mathf.CeilToInt(Mathf.Max(timer, 0));
+    void ShowAllControls()
+    {
+        if (acceleratorButton != null) acceleratorButton.gameObject.SetActive(true);
+        if (brakeButton != null) brakeButton.gameObject.SetActive(true);
+        if (steeringWheelImage != null) steeringWheelImage.gameObject.SetActive(true);
+        if (gearShiftImage != null) gearShiftImage.gameObject.SetActive(true);
+        if (gearShiftSlider != null) gearShiftSlider.gameObject.SetActive(true);
+
+        foreach (var btn in allOtherUIButtons)
+            btn.SetActive(true);
+    }
+
+    void ActivateCurrentObjective()
+    {
+        if (currentObjectiveIndex < objectiveMarkers.Length)
+        {
+            objectiveMarkers[currentObjectiveIndex].SetActive(true);
+        }
+        else
+        {
+            parkingZone.canCheckParking = true;
+        }
+    }
+
+    public void OnObjectiveReached()
+    {
+        if (currentObjectiveIndex < objectiveMarkers.Length)
+        {
+            objectiveMarkers[currentObjectiveIndex].SetActive(false);
+        }
+
+        if (timerManager != null)
+            timerManager.AddTime();
+
+        currentObjectiveIndex++;
+        ActivateCurrentObjective();
+    }
+
+    public void ApplyPunishment()
+    {
+        currentLives--;
+        UpdateLivesUI();
+
+        if (currentLives <= 0)
+        {
+            GameOver();
+        }
+        else
+        {
+            // Optional: Reset car position or give player another try
+        }
+    }
+
+    void UpdateLivesUI()
+    {
+        for (int i = 0; i < lifeIcons.Length; i++)
+        {
+            lifeIcons[i].enabled = i < currentLives;
+        }
+    }
+
+    void GameOver()
+    {
+        carControls.carPoweredOn = false;
+        Debug.Log("Game Over - All lives lost");
+        // Optional: Show Game Over UI, return to menu, etc.
     }
 }

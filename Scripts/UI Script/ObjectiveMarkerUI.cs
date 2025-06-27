@@ -19,49 +19,44 @@ public class ObjectiveMarkerUI : MonoBehaviour
     [Header("Distance Text Settings")]
     public Vector2 textOffset = new Vector2(0, -30); // Adjust to position text relative to marker
 
+    [Header("Stage 4 (Optional)")]
+    public Stage4Manager stage4Manager; // Assign only in Stage 4
+
     private int currentObjectiveIndex = 0;
     private Transform player;
     private Tweener rotationTween;
     private RectTransform distanceTextRect;
+    private Transform target;
 
     void Start()
     {
         if (objectives.Length > 0)
             SetTarget(objectives[0]);
-        player = GameObject.FindGameObjectWithTag("Player")?.transform; // Tag your player
-        
-        // Get the text's RectTransform for positioning
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
         if (distanceText != null)
             distanceTextRect = distanceText.rectTransform;
-        
-        // Start the rotation animation
+
         StartRotationAnimation();
     }
 
     void StartRotationAnimation()
     {
-        // Kill any existing rotation
         if (rotationTween != null && rotationTween.IsActive())
             rotationTween.Kill();
-        
+
         if (markerRect != null)
         {
-            // Calculate full rotation based on direction
             float targetRotation = rotateClockwise ? 360f : -360f;
-            
-            // Calculate duration properly - higher speed should result in faster rotation
-            float duration = 360f / rotationSpeed; // This converts degrees per second to seconds per full rotation
-            
-            Debug.Log($"Starting rotation with speed: {rotationSpeed} degrees/sec, duration: {duration} seconds per rotation");
-            
-            // Create infinite rotation tween with corrected duration calculation
+            float duration = 360f / rotationSpeed;
+
             rotationTween = markerRect.DOLocalRotate(
-                new Vector3(0, targetRotation, 0), // Rotate around Y axis
-                duration, // Corrected duration calculation
-                RotateMode.LocalAxisAdd) // Add to current rotation
-                .SetEase(Ease.Linear) // Smooth, constant rotation
-                .SetLoops(-1, LoopType.Restart) // Infinite looping
-                .SetUpdate(true); // Works even when game is paused
+                new Vector3(0, targetRotation, 0),
+                duration,
+                RotateMode.LocalAxisAdd)
+                .SetEase(Ease.Linear)
+                .SetLoops(-1, LoopType.Restart)
+                .SetUpdate(true);
         }
     }
 
@@ -79,10 +74,8 @@ public class ObjectiveMarkerUI : MonoBehaviour
         clampedPos.x = Mathf.Clamp(clampedPos.x, screenEdgeBuffer, Screen.width - screenEdgeBuffer);
         clampedPos.y = Mathf.Clamp(clampedPos.y, screenEdgeBuffer, Screen.height - screenEdgeBuffer);
 
-        // Position the marker
         markerRect.position = clampedPos;
-        
-        // Position the distance text with offset
+
         if (distanceTextRect != null)
         {
             distanceTextRect.position = new Vector3(clampedPos.x + textOffset.x, clampedPos.y + textOffset.y, distanceTextRect.position.z);
@@ -91,24 +84,20 @@ public class ObjectiveMarkerUI : MonoBehaviour
         float distance = Vector3.Distance(player.position, target.position);
         distanceText.text = Mathf.RoundToInt(distance) + "m";
 
-        // Check for interaction
         if (distance < objectiveReachRadius)
         {
             NextObjective();
         }
     }
 
-    private Transform target;
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
         markerRect.gameObject.SetActive(target != null);
-        
-        // Also toggle distance text visibility
+
         if (distanceText != null)
             distanceText.gameObject.SetActive(target != null);
-            
-        // Restart rotation if setting a new target
+
         if (target != null && (rotationTween == null || !rotationTween.IsActive()))
         {
             StartRotationAnimation();
@@ -117,6 +106,12 @@ public class ObjectiveMarkerUI : MonoBehaviour
 
     void NextObjective()
     {
+        // Stage 4 support: notify manager before advancing
+        if (stage4Manager != null)
+        {
+            stage4Manager.OnObjectiveReached();
+        }
+
         currentObjectiveIndex++;
         if (currentObjectiveIndex < objectives.Length)
         {
@@ -124,18 +119,15 @@ public class ObjectiveMarkerUI : MonoBehaviour
         }
         else
         {
-            // All objectives complete
-            SetTarget(null); // Hide marker
-            
-            // Stop rotation when no more objectives
+            SetTarget(null);
+
             if (rotationTween != null && rotationTween.IsActive())
                 rotationTween.Kill();
         }
     }
-    
+
     private void OnDestroy()
     {
-        // Clean up tween when destroyed
         if (rotationTween != null && rotationTween.IsActive())
             rotationTween.Kill();
     }

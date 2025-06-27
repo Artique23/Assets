@@ -40,6 +40,8 @@ public class CarSoundManager : MonoBehaviour
     public Button leftSignalButton;
     public Button rightSignalButton;
     public Button highbeamButton;
+    private Coroutine leftSignalCoroutine;
+    private Coroutine rightSignalCoroutine;
 
     private bool hazardsActive = false;
     private bool leftSignalActive = false;
@@ -152,9 +154,9 @@ public class CarSoundManager : MonoBehaviour
         }
     }
 
-    private void ToggleLoopAudio(AudioSource source, ref bool state)
-    {
-        if (source == null) return;
+private void ToggleLoopAudio(AudioSource source, ref bool state)
+{
+    if (source == null) return;
     if (source != HazardSource && HazardSource.isPlaying)
     {
         HazardSource.Stop();
@@ -164,17 +166,85 @@ public class CarSoundManager : MonoBehaviour
     {
         LeftSignalSource.Stop();
         leftSignalActive = false;
+        if (leftSignalCoroutine != null)
+        {
+            StopCoroutine(leftSignalCoroutine);
+            leftSignalCoroutine = null;
+        }
     }
     if (source != RightSignalSource && RightSignalSource.isPlaying)
     {
         RightSignalSource.Stop();
         rightSignalActive = false;
+        if (rightSignalCoroutine != null)
+        {
+            StopCoroutine(rightSignalCoroutine);
+            rightSignalCoroutine = null;
+        }
     }
 
-        state = !state;
-        if (state) source.Play();
-        else source.Stop();
+    state = !state;
+    if (state)
+    {
+        if (source == LeftSignalSource)
+        {
+            leftSignalCoroutine = StartCoroutine(BlinkSignalCoroutine(LeftSignalSource));
+        }
+        else if (source == RightSignalSource)
+        {
+            rightSignalCoroutine = StartCoroutine(BlinkSignalCoroutine(RightSignalSource));
+        }
+        else
+        {
+            source.Play();
+        }
     }
+    else
+    {
+        source.Stop();
+        if (source == LeftSignalSource && leftSignalCoroutine != null)
+        {
+            StopCoroutine(leftSignalCoroutine);
+            leftSignalCoroutine = null;
+        }
+        if (source == RightSignalSource && rightSignalCoroutine != null)
+        {
+            StopCoroutine(rightSignalCoroutine);
+            rightSignalCoroutine = null;
+        }
+    }
+}
+
+private IEnumerator BlinkSignalCoroutine(AudioSource signalSource)
+{
+    float blinkDuration = 5f; // total time to blink before auto-off
+    float elapsed = 0f;
+    float blinkInterval = 0.3f;
+
+    while (elapsed < blinkDuration)
+    {
+        signalSource.Play();
+        yield return new WaitForSeconds(blinkInterval);
+        signalSource.Stop();
+        yield return new WaitForSeconds(blinkInterval);
+        elapsed += blinkInterval * 2;
+    }
+
+    // Auto turn off after timer
+    if (signalSource == LeftSignalSource)
+    {
+        leftSignalActive = false;
+        StopCoroutine(leftSignalCoroutine);
+        leftSignalCoroutine = null;
+    }
+    else if (signalSource == RightSignalSource)
+    {
+        rightSignalActive = false;
+        StopCoroutine(rightSignalCoroutine);
+        rightSignalCoroutine = null;
+    }
+    signalSource.Stop();
+}
 
     public void PlayHorn()
     {

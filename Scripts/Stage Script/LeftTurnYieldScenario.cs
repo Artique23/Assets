@@ -6,17 +6,17 @@ public class LeftTurnYieldScenario : MonoBehaviour
     public StageBaseManager tutorialManager;
 
     public CarlightController carlightController; // Assign the player's CarlightController script
-    public Transform[] aiCars;      // Drag blue-path AI cars here
-    public float dangerZone = 15f;  // Distance to consider "too close"
-    public float waitTimeThreshold = 1.5f; // How long the player should wait in the zone
+    public Transform[] aiCars; // Drag blue-path AI cars here
+    public float dangerZone = 15f;
+    public float waitTimeThreshold = 1.5f;
 
-    public int rewardPoints = 100;
-    public int penaltyPoints = -50;
-    public int playerScore = 0; // Replace with your global score manager if you have one
+    public int rewardPoints = 200;
+    public int penaltyPoints = -100;
+    public int playerScore = 0;
 
     private bool playerInZone = false;
     private float playerWaitTime = 0f;
-    private bool signalWasOnInZone = false; // Track if left signal was ever on in zone
+    private bool signalWasOnInZone = false;
 
     void OnTriggerEnter(Collider other)
     {
@@ -25,8 +25,9 @@ public class LeftTurnYieldScenario : MonoBehaviour
             playerInZone = true;
             playerWaitTime = 0f;
             signalWasOnInZone = false;
+
             if (tutorialManager != null)
-                tutorialManager.ShowWade("Use your LEFT turn signal and wait for oncoming traffic to clear before turning left!");
+                tutorialManager.ShowWade("Use your turn signal and wait for oncoming traffic to clear before turning!");
         }
     }
 
@@ -36,7 +37,6 @@ public class LeftTurnYieldScenario : MonoBehaviour
         {
             playerInZone = false;
 
-            // Check if signal was EVER on while in the zone!
             bool didSignal = signalWasOnInZone;
             bool waitedLongEnough = playerWaitTime > waitTimeThreshold;
             bool danger = IsAICarApproaching();
@@ -45,30 +45,28 @@ public class LeftTurnYieldScenario : MonoBehaviour
 
             if (!didSignal && danger)
             {
-                msg = "You must use your LEFT turn signal and yield to oncoming traffic! -" + Mathf.Abs(penaltyPoints) + " points";
-                StageScoreManager.Instance.AddPoints(penaltyPoints); // UPDATED
+                msg = "You must use your turn signal and yield to oncoming traffic! -" + Mathf.Abs(penaltyPoints) + " points";
+                StageScoreManager.Instance.AddPoints(penaltyPoints);
             }
             else if (!didSignal)
             {
-                msg = "Don't forget your LEFT turn signal when turning left. -" + Mathf.Abs(penaltyPoints) + " points";
-                StageScoreManager.Instance.AddPoints(penaltyPoints); // UPDATED
+                msg = "Don't forget your turn signal when turning left. -" + Mathf.Abs(penaltyPoints) + " points";
+                StageScoreManager.Instance.AddPoints(penaltyPoints);
             }
             else if (danger)
             {
                 msg = "Watch out! Yield to oncoming traffic before turning left.";
-                // No reward or penalty
             }
             else if (waitedLongEnough)
             {
                 msg = "Excellent! You signaled and waited for a safe gap before turning. +" + rewardPoints + " points!";
-                StageScoreManager.Instance.AddPoints(rewardPoints); // UPDATED
+                StageScoreManager.Instance.AddPoints(rewardPoints);
             }
             else
             {
                 msg = "Good signal! But always double-check for traffic before turning. +" + rewardPoints + " points!";
-                StageScoreManager.Instance.AddPoints(rewardPoints); // UPDATED
+                StageScoreManager.Instance.AddPoints(rewardPoints);
             }
-
 
             if (tutorialManager != null)
                 tutorialManager.ShowWade(msg);
@@ -83,9 +81,12 @@ public class LeftTurnYieldScenario : MonoBehaviour
         if (playerInZone)
         {
             playerWaitTime += Time.deltaTime;
-            // If signal is ON, mark it as true (remains true after)
-            if (carlightController != null && carlightController.LeftSignalIsOn())
+
+            if (carlightController != null &&
+                (carlightController.LeftSignalIsOn() || carlightController.RightSignalIsOn()))
+            {
                 signalWasOnInZone = true;
+            }
         }
     }
 

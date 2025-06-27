@@ -64,6 +64,10 @@ public class CarControls : MonoBehaviour
     public float pedalInput = 0f; // 1 = pressed, 0 = released
     public float brakeInput = 0f; // 1 = pressed, 0 = released
 
+    public float currentUISpeedKmh { get; private set; } = 0f;
+
+    public StageBaseManager stageBaseManager; 
+
     public Stage1TutorialManager tutorialManager; // Drag Wade's manager in the inspector
 
     private void Awake()
@@ -78,6 +82,7 @@ public class CarControls : MonoBehaviour
             AddButtonEvents(brakeButton, OnBrakeDown, OnBrakeUp);
         }
     }
+
 
     void Start()
     {
@@ -364,7 +369,8 @@ public class CarControls : MonoBehaviour
     {
         if (speedometerText != null)
         {
-            float speed = GetCurrentSpeed() * 3.6f; // Unity units/sec to km/h
+            float speed = GetCurrentSpeed() * 3.6f; // Convert to km/h
+            currentUISpeedKmh = speed;              // <== STORE this value for others to read
             speedometerText.text = Mathf.RoundToInt(speed).ToString() + " <size=12>km/h</size>";
         }
     }
@@ -374,13 +380,13 @@ public class CarControls : MonoBehaviour
         if (collision.gameObject.CompareTag("AutonomousVehicle"))
         {
             StageScoreManager.Instance.AddPoints(-50);
-            if (tutorialManager != null)
-                tutorialManager.ShowWade("Don't crash into other cars! -50 points");
+            if (stageBaseManager != null)
+                stageBaseManager.ShowWade("Don't crash into other cars! -50 points");
         }
         else if (collision.gameObject.CompareTag("Environment"))
         {
             StageScoreManager.Instance.AddPoints(-20);
-            tutorialManager?.ShowWade("Careful! You hit the environment! -20 points");
+            stageBaseManager.ShowWade("Careful! You hit the environment! -20 points");
         }
     }
 }
