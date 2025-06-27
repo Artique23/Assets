@@ -28,10 +28,10 @@ public class TrafficLightZone : MonoBehaviour
                 rewarded = false;
                 penalized = false;
                 waitHintShown = false;
-                Debug.Log("Player entered trigger (found by parent tag)!");
+                
                 break;
             }
-            Debug.Log("Trigger entered by: " + t.gameObject.name);
+                
             t = t.parent; // Check parent hierarchy for "Player" tag
         }
     }

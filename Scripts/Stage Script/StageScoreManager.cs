@@ -24,7 +24,7 @@ public class StageScoreManager : MonoBehaviour
     public void AddPoints(int points)
     {
         totalPoints += points;
-        Debug.Log("Points updated. Total: " + totalPoints);
+        
     }
 
     public int GetPoints()
