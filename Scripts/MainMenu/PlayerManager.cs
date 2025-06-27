@@ -8,7 +8,7 @@ public class PlayerManager : MonoBehaviour
 {
     // This is a Singleton pattern - it means there's only one PlayerManager in the whole game
     public static PlayerManager Instance { get; private set; }
-    
+    private int[] selectedColorIndices;
     // Player information
     [SerializeField] private int playerCurrency = 20;
     [SerializeField] private int carsUnlocked = 1; // Start with 1 car unlocked
@@ -47,6 +47,19 @@ public class PlayerManager : MonoBehaviour
 
     void Awake()
     {
+            if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+
+            selectedColorIndices = new int[5]; // Replace 5 with the total number of cars
+            for (int i = 0; i < selectedColorIndices.Length; i++)
+                selectedColorIndices[i] = 0; // default color index
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         // If there's already a PlayerManager, destroy this one
         if (Instance != null && Instance != this)
         {
@@ -72,8 +85,23 @@ public class PlayerManager : MonoBehaviour
         Debug.Log("Save file is at: " + saveFilePath);
     }
     
+        public int GetCarColorIndex(int carIndex)
+    {
+        if (selectedColorIndices == null || carIndex < 0 || carIndex >= selectedColorIndices.Length)
+            return 0; // fallback to default color
+
+        return selectedColorIndices[carIndex];
+    }
+
+    public void SetCarColorIndex(int carIndex, int colorIndex)
+    {
+        if (selectedColorIndices == null || carIndex < 0 || carIndex >= selectedColorIndices.Length)
+            return;
+
+        selectedColorIndices[carIndex] = colorIndex;
+    }
     // Functions for other scripts to use
-    
+
     public int GetCurrency()
     {
         return playerCurrency;
@@ -261,6 +289,7 @@ public class PlayerManager : MonoBehaviour
         Debug.Log($"Added 10 currency. New total: {playerCurrency}");
     }
 }
+
 
 // This class defines what gets saved to file
 [System.Serializable]

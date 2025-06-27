@@ -449,21 +449,37 @@ private void AnimateButtonSelection(int selectedIndex)
     }
 
     public void ToggleCustomizeMenu()
-{
-    // Check the current active state of any customize panels
-    bool isAnyPanelActive = JPXCustomize.activeSelf || JhayluxCustomize.activeSelf || DreivusCustomize.activeSelf;
-    
-    if (isAnyPanelActive)
     {
-        // If any panel is active, hide all customize panels
-        HideCustomizeMenu();
+        // Check the current active state of any customize panels
+        bool isAnyPanelActive = JPXCustomize.activeSelf || JhayluxCustomize.activeSelf || DreivusCustomize.activeSelf;
+
+        if (isAnyPanelActive)
+        {
+            // If any panel is active, hide all customize panels
+            HideCustomizeMenu();
+        }
+        else
+        {
+            // If no panel is active, show the appropriate customize panel
+            ShowCustomizeMenu();
+        }
     }
-    else
+    public void ChangeCarColor(int colorIndex)
     {
-        // If no panel is active, show the appropriate customize panel
-        ShowCustomizeMenu();
+        if (gameManager == null)
+        {
+            gameManager = FindObjectOfType<GameManagerSaveAndLoad>();
+        }
+
+        if (gameManager != null)
+        {
+            gameManager.SetCarColorIndex(colorIndex);
+        }
+        else
+        {
+            Debug.LogError("GameManagerSaveAndLoad not found when trying to change car color.");
+        }
     }
-}
     
     public void ShowControlsPanel()
     {

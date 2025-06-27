@@ -6,6 +6,8 @@ using TMPro;
 
 public class GameManagerSaveAndLoad : MonoBehaviour
 {
+    private int[] selectedColorIndices;
+
     #region Car Information
     [System.Serializable]
     public class CarInfo
@@ -13,6 +15,7 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         public GameObject carPrefab;
         public int price;
         public string carName;
+        public GameObject[] colorVariants;
     }
     #endregion
 
@@ -52,7 +55,11 @@ public class GameManagerSaveAndLoad : MonoBehaviour
 
         // Set the display index to the player's selected car
         currentDisplayIndex = PlayerManager.Instance.GetSelectedCar();
-
+    selectedColorIndices = new int[carCatalog.Length];
+        for (int i = 0; i < selectedColorIndices.Length; i++)
+        {
+            selectedColorIndices[i] = 3; // <-- Your actual default index
+        }
         // Show the current car
         DisplayCurrentCar();
 
@@ -66,7 +73,7 @@ public class GameManagerSaveAndLoad : MonoBehaviour
     public void ExitGame()
     {
         Debug.Log("Exiting game...");
-        
+
 #if UNITY_EDITOR
         // If running in editor, stop play mode
         UnityEditor.EditorApplication.isPlaying = false;
@@ -168,14 +175,14 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         {
             // Make sure it's active
             selectedIndicator.SetActive(true);
-            
+
             // Get the original scale and color
             Vector3 originalScale = selectedIndicator.transform.localScale;
-            
+
             // Get image component if we're doing color changes
             Image indicatorImage = null;
             Color originalColor = Color.white;
-            
+
             if (useColorPulse)
             {
                 indicatorImage = selectedIndicator.GetComponent<Image>();
@@ -184,33 +191,33 @@ public class GameManagerSaveAndLoad : MonoBehaviour
                     originalColor = indicatorImage.color;
                 }
             }
-            
+
             // Flash effect
             for (int i = 0; i < selectionPulseCount; i++)
             {
                 // Scale up
                 selectedIndicator.transform.localScale = originalScale * selectionPulseScale;
-                
+
                 // Change color if enabled
                 if (useColorPulse && indicatorImage != null)
                 {
                     indicatorImage.color = selectionHighlightColor;
                 }
-                
+
                 yield return new WaitForSeconds(selectionPulseDuration);
-                
+
                 // Scale down
                 selectedIndicator.transform.localScale = originalScale;
-                
+
                 // Restore color
                 if (useColorPulse && indicatorImage != null)
                 {
                     indicatorImage.color = originalColor;
                 }
-                
+
                 yield return new WaitForSeconds(selectionPulseDuration);
             }
-            
+
             // Ensure original state is restored
             selectedIndicator.transform.localScale = originalScale;
             if (useColorPulse && indicatorImage != null)
@@ -327,16 +334,18 @@ public class GameManagerSaveAndLoad : MonoBehaviour
     // Display the current car in the viewer
     private void DisplayCurrentCar()
     {
-        // Remove old car if it exists
         if (currentCarInstance != null)
             Destroy(currentCarInstance);
 
-        // Create new car if valid index
         if (currentDisplayIndex >= 0 && currentDisplayIndex < carCatalog.Length)
         {
-            currentCarInstance = Instantiate(carCatalog[currentDisplayIndex].carPrefab);
+            int colorIndex = selectedColorIndices[currentDisplayIndex];
+            colorIndex = Mathf.Clamp(colorIndex, 0, carCatalog[currentDisplayIndex].colorVariants.Length - 1);
+
+            currentCarInstance = Instantiate(carCatalog[currentDisplayIndex].colorVariants[colorIndex]);
         }
     }
+
 
     // Get the current car index for external access
     public int GetCurrentCarIndex()
@@ -344,5 +353,18 @@ public class GameManagerSaveAndLoad : MonoBehaviour
         return currentDisplayIndex;
     }
     
+    public void SetCarColorIndex(int colorIndex)
+{
+    if (currentDisplayIndex < 0 || currentDisplayIndex >= carCatalog.Length)
+        return;
+
+    // Clamp color index and update
+    int maxIndex = carCatalog[currentDisplayIndex].colorVariants.Length - 1;
+    selectedColorIndices[currentDisplayIndex] = Mathf.Clamp(colorIndex, 0, maxIndex);
+
+    // Re-display car with new color
+    DisplayCurrentCar();
+}
+
     #endregion
 }
