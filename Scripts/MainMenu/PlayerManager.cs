@@ -12,7 +12,7 @@ public class PlayerManager : MonoBehaviour
     public static PlayerManager Instance { get; private set; }
     private int[] selectedColorIndices;
     // Player information
-    [SerializeField] private int playerCurrency = 20;
+    [SerializeField] private int playerCurrency = 500;
     [SerializeField] private int carsUnlocked = 1; // Start with 1 car unlocked
     [SerializeField] private bool[] unlockedCars = new bool[3]; // Track which cars are unlocked
     [SerializeField] private int selectedCar = 0; // Which car is selected now
@@ -50,7 +50,7 @@ public class PlayerManager : MonoBehaviour
 
     void Awake()
     {
-            if (Instance == null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
@@ -58,6 +58,9 @@ public class PlayerManager : MonoBehaviour
             selectedColorIndices = new int[5]; // Replace 5 with the total number of cars
             for (int i = 0; i < selectedColorIndices.Length; i++)
                 selectedColorIndices[i] = 0; // default color index
+                
+            for (int i = 0; i < unlockedCars.Length; i++)
+            unlockedCars[i] = true;
         }
         else
         {
