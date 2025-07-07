@@ -203,6 +203,11 @@ public class MixAndMatch : MonoBehaviour
 
         // Now activate mini-game panel
         mixAndMatchPanel.SetActive(true);
+        if (winningInventory != null)
+        {
+            winningInventory.FadeInCurrentSigns();
+        }
+
 
         // Fade in mini-game panel
         if (miniGamePanelCanvasGroup != null)
