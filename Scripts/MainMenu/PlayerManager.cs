@@ -13,7 +13,7 @@ public class PlayerManager : MonoBehaviour
     private int[] selectedColorIndices;
     // Player information
     [SerializeField] private int playerCurrency = 20;
-    [SerializeField] private int carsUnlocked = 1; // Start with 1 car unlocked
+    [SerializeField] private int carsUnlocked = 3; // Start with 1 car unlocked
     [SerializeField] private bool[] unlockedCars = new bool[3]; // Track which cars are unlocked
     [SerializeField] private int selectedCar = 0; // Which car is selected now
     
@@ -80,12 +80,44 @@ public class PlayerManager : MonoBehaviour
         saveFilePath = Path.Combine(Application.persistentDataPath, "playerProgress.json");
 
         // Set the first car to be always unlocked
-        unlockedCars[0] = true;
+        for (int i = 0; i < unlockedCars.Length; i++)
+        {
+            unlockedCars[i] = true;
+        }
 
         // Load player data when game starts
         LoadPlayerData();
+
+        EnsureAllCarsUnlocked();
         
         Debug.Log("Save file is at: " + saveFilePath);
+    }
+ private void EnsureAllCarsUnlocked()
+    {
+        bool needsSave = false;
+        
+        // Make sure all cars are unlocked
+        for (int i = 0; i < unlockedCars.Length; i++)
+        {
+            if (!unlockedCars[i])
+            {
+                unlockedCars[i] = true;
+                needsSave = true;
+            }
+        }
+        
+        // Update the cars unlocked count
+        if (carsUnlocked != unlockedCars.Length)
+        {
+            carsUnlocked = unlockedCars.Length;
+            needsSave = true;
+        }
+        
+        // Save if changes were made
+        if (needsSave)
+        {
+            SavePlayerData();
+        }
     }
     
     public int GetCarColorIndex(int carIndex)
