@@ -2,433 +2,366 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
-using DG.Tweening; // Add DOTween namespace
+using DG.Tweening;
 
 public class WinningInventory : MonoBehaviour
 {
+    public int CurrentRound => currentRound;
     [Header("Game Setup")]
-    public InventorySlot[] winningSlots;  // Target slots for correct answers
-    public TextMeshProUGUI[] slotLabels;  // Labels for each slot
-    public List<GameObject> roadSignPrefabs;  // All available road signs
-    public Transform roadSignsContainer;  // Where to spawn road signs
-    public Button nextButton;  
-    public Button resetButton;  
+    public InventorySlot[] winningSlots;
+    public TextMeshProUGUI[] slotLabels;
+    public List<GameObject> roadSignPrefabs;
+    public Transform roadSignsContainer;
+    public Button nextButton;
+    public Button resetButton;
 
     [Header("Game Settings")]
     public int totalRounds;
-    
+
     [Header("Animation Settings")]
     public float buttonBreatheDuration = 1.5f;
     public float buttonBreathScale = 1.1f;
     public float signFadeDuration = 0.5f;
-
-    // Private variables
-    private List<GameObject> spawnedSigns = new List<GameObject>();
-    private List<string> currentRoundSignNames = new List<string>();
-    private int currentRound = 0;
-    private bool roundComplete = false;
-    private bool isQuizPanelActive = false;
-    private Tween buttonBreatheTween;
+    public float signReplaceDelay = 0.2f; // Delay between fade-out and instantiation
 
     [Header("References")]
-    public GameObject quizPanel; // Reference to the quiz panel
+    public GameObject quizPanel;
+
+    private List<GameObject> spawnedSigns = new();
+    private List<string> currentRoundSignNames = new();
+    private List<string> usedSignNames = new();
+    private List<Tween> activeFadeTweens = new();
+
+    private int currentRound = 0;
+    private bool roundComplete = false;
+    private Tween buttonBreatheTween;
+    private bool isQuizPanelActive = false;
 
     void Start()
     {
-        // Set up buttons
-        if (nextButton != null)
-        {
-            nextButton.gameObject.SetActive(false);
-            nextButton.onClick.AddListener(StartNextRound);
-        }
-
-        if (resetButton != null)
-        {
-            resetButton.onClick.AddListener(ResetCurrentRound);
-        }
-
-        // Do an initial shuffle when the game starts
-        ShuffleRoadSigns();
-
-        // Start first round
+        nextButton.gameObject.SetActive(false);
+        nextButton.onClick.AddListener(StartNextRound);
+        resetButton.onClick.AddListener(ResetCurrentRound);
         StartNextRound();
     }
 
     void Update()
     {
-        // Check if round is complete
         if (!roundComplete && AreAllSlotsCorrect())
         {
             roundComplete = true;
             OnRoundComplete();
         }
     }
-    
+
     void OnDestroy()
     {
-        // Kill all tweens when the object is destroyed
-        if (buttonBreatheTween != null)
-            buttonBreatheTween.Kill();
-    }
-
-    public int CurrentRound
-    {
-        get { return currentRound; }
-    }
-
-    public void ShuffleRoadSigns()
-    {
-        // Find all draggable items in the container
-        List<DraggableItem> roadSigns = new List<DraggableItem>();
-        foreach (Transform child in roadSignsContainer)
-        {
-            DraggableItem item = child.GetComponentInChildren<DraggableItem>();
-            if (item != null)
-            {
-                roadSigns.Add(item);
-            }
-        }
-
-        if (roadSigns.Count <= 1)
-        {
-            Debug.LogWarning("Not enough road signs to shuffle");
-            return;
-        }
-
-        // Fade out signs before shuffling
-        FadeOutSigns(roadSigns, () => {
-            // Shuffle the signs
-            InstantlyShuffle(roadSigns);
-            
-            // Fade them back in
-            FadeInSigns(roadSigns);
-        });
-    }
-    
-    // Fade out all signs
-    private void FadeOutSigns(List<DraggableItem> signs, TweenCallback onComplete)
-    {
-        Sequence fadeSequence = DOTween.Sequence();
-        
-        // Fade out each sign
-        foreach (DraggableItem sign in signs)
-        {
-            if (sign == null) continue;
-            
-            // Get or add CanvasGroup
-            CanvasGroup canvasGroup = sign.GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-                canvasGroup = sign.gameObject.AddComponent<CanvasGroup>();
-                
-            // Add fade to sequence
-            fadeSequence.Join(canvasGroup.DOFade(0, signFadeDuration));
-        }
-        
-        // Set callback when all fades complete
-        fadeSequence.OnComplete(onComplete);
-    }
-    
-    // Fade in all signs
-    private void FadeInSigns(List<DraggableItem> signs)
-    {
-        Sequence fadeSequence = DOTween.Sequence();
-        
-        // Fade in each sign
-        foreach (DraggableItem sign in signs)
-        {
-            if (sign == null) continue;
-            
-            // Get CanvasGroup (should exist from FadeOutSigns)
-            CanvasGroup canvasGroup = sign.GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-                canvasGroup = sign.gameObject.AddComponent<CanvasGroup>();
-                
-            // Add fade to sequence
-            fadeSequence.Join(canvasGroup.DOFade(1, signFadeDuration));
-        }
-    }
-
-    private void InstantlyShuffle(List<DraggableItem> signs)
-    {
-        // Get all current slots
-        List<Transform> slots = new List<Transform>();
-        foreach (DraggableItem sign in signs)
-        {
-            slots.Add(sign.transform.parent);
-        }
-
-        // Store original scales
-        List<Vector3> originalScales = new List<Vector3>();
-        foreach (DraggableItem sign in signs)
-        {
-            originalScales.Add(sign.transform.localScale);
-        }
-
-        // Shuffle the slots list
-        for (int i = 0; i < slots.Count; i++)
-        {
-            int randomIndex = Random.Range(i, slots.Count);
-            Transform temp = slots[i];
-            slots[i] = slots[randomIndex];
-            slots[randomIndex] = temp;
-        }
-
-        // Assign each sign to a new slot
-        for (int i = 0; i < signs.Count; i++)
-        {
-            signs[i].transform.SetParent(slots[i]);
-            signs[i].transform.localPosition = Vector3.zero;
-            signs[i].transform.localRotation = Quaternion.identity;
-            
-            // Make sure the scale is correct (use original scale)
-            signs[i].transform.localScale = originalScales[i];
-
-            // Update the original parent reference
-            signs[i].originalParent = slots[i];
-        }
+        if (buttonBreatheTween != null) buttonBreatheTween.Kill();
     }
 
     public void StartNextRound()
     {
-        // Stop the breathing animation
-        if (buttonBreatheTween != null)
-        {
-            buttonBreatheTween.Kill();
-            buttonBreatheTween = null;
-        }
-        
-        // Reset state
+        if (buttonBreatheTween != null) buttonBreatheTween.Kill();
+
         roundComplete = false;
         currentRoundSignNames.Clear();
-
-        // Return any signs in winning slots to container
         ReturnSignsToContainer();
 
-        // Hide next button
-        if (nextButton != null)
-            nextButton.gameObject.SetActive(false);
+        if (nextButton != null) nextButton.gameObject.SetActive(false);
 
-        // Shuffle the road signs in the container
-        ShuffleRoadSigns();
-
-        // Select random signs for this round
-        SelectRandomSigns();
-
-        // Set up winning slots with expected sign names
-        for (int i = 0; i < winningSlots.Length && i < currentRoundSignNames.Count; i++)
+        // Fade out current signs first, then delay, then spawn new
+        List<DraggableItem> signs = new();
+        foreach (Transform child in roadSignsContainer)
         {
-            if (winningSlots[i] != null)
-            {
-                winningSlots[i].expectedSignName = currentRoundSignNames[i];
-            }
-
-            // Update label text
-            if (slotLabels != null && i < slotLabels.Length && slotLabels[i] != null)
-            {
-                slotLabels[i].text = currentRoundSignNames[i];
-            }
+            DraggableItem item = child.GetComponentInChildren<DraggableItem>();
+            if (item != null) signs.Add(item);
         }
 
-        // Increment round counter
-        currentRound++;
-        Debug.Log($"Starting Round {currentRound}");
+        FadeOutSigns(signs, () =>
+        {
+            // Delay after fade-out
+            DOVirtual.DelayedCall(signReplaceDelay, () =>
+            {
+                SelectRandomSigns();
+                PopulateInventoryWithCurrentSigns();
+
+                // Fade in new signs
+            DOVirtual.DelayedCall(0.05f, () =>
+            {
+                List<DraggableItem> newSigns = new();
+                foreach (Transform child in roadSignsContainer)
+                {
+                    DraggableItem item = child.GetComponentInChildren<DraggableItem>();
+                    if (item != null) newSigns.Add(item);
+                }
+                FadeInSigns(newSigns);
+            });
+
+                for (int i = 0; i < winningSlots.Length && i < currentRoundSignNames.Count; i++)
+                {
+                    if (winningSlots[i] != null)
+                        winningSlots[i].expectedSignName = currentRoundSignNames[i];
+
+                    if (slotLabels != null && i < slotLabels.Length && slotLabels[i] != null)
+                        slotLabels[i].text = currentRoundSignNames[i];
+                }
+
+                currentRound++;
+                Debug.Log($"Starting Round {currentRound}");
+            });
+        });
     }
 
-    private List<string> previousRoundSignNames = new List<string>();
+    private void FadeOutSigns(List<DraggableItem> signs, TweenCallback onComplete)
+    {
+        foreach (Tween t in activeFadeTweens)
+            if (t.IsActive()) t.Kill();
+        activeFadeTweens.Clear();
+
+        Sequence fadeSequence = DOTween.Sequence();
+        foreach (DraggableItem sign in signs)
+        {
+            if (sign == null) continue;
+
+            CanvasGroup canvasGroup = sign.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = sign.gameObject.AddComponent<CanvasGroup>();
+
+            Tween fade = canvasGroup.DOFade(0, signFadeDuration);
+            activeFadeTweens.Add(fade);
+            fadeSequence.Join(fade);
+        }
+        fadeSequence.OnComplete(onComplete);
+    }
+
+public void FadeInCurrentSigns()
+{
+    List<DraggableItem> signs = new List<DraggableItem>();
+    foreach (Transform child in roadSignsContainer)
+    {
+        DraggableItem item = child.GetComponentInChildren<DraggableItem>();
+        if (item != null) signs.Add(item);
+    }
+    FadeInSigns(signs);
+}
+
+    public void FadeInSigns(List<DraggableItem> signs)
+    {
+        foreach (Tween t in activeFadeTweens)
+            if (t.IsActive()) t.Kill();
+        activeFadeTweens.Clear();
+
+        Sequence fadeSequence = DOTween.Sequence();
+
+        foreach (DraggableItem sign in signs)
+        {
+            if (sign == null) continue;
+
+            CanvasGroup canvasGroup = sign.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = sign.gameObject.AddComponent<CanvasGroup>();
+
+            // Force alpha to 0 before fading in
+            canvasGroup.alpha = 0;
+
+            Tween fade = canvasGroup
+                .DOFade(1, signFadeDuration)
+                .OnComplete(() => canvasGroup.alpha = 1); // Ensure it's set to 1
+
+            activeFadeTweens.Add(fade);
+            fadeSequence.Join(fade);
+        }
+
+        // Optional: slight delay before starting fade
+        fadeSequence.PrependInterval(0.05f);
+    }
+
 
     private void SelectRandomSigns()
     {
-        // Create list of available signs
-        List<GameObject> availableSigns = new List<GameObject>(roadSignPrefabs);
-
-        // Try to avoid signs from the previous round if possible
-        if (availableSigns.Count > winningSlots.Length && previousRoundSignNames.Count > 0)
+        if (usedSignNames.Count >= roadSignPrefabs.Count)
         {
-            availableSigns.RemoveAll(sign =>
-                previousRoundSignNames.Contains(sign.name) &&
-                availableSigns.Count - 1 >= winningSlots.Length
-            );
+            usedSignNames.Clear();
+            Debug.Log("All signs used! Resetting usedSignNames.");
         }
 
-        // Select random signs
-        int signsToSelect = Mathf.Min(winningSlots.Length, availableSigns.Count);
+        List<GameObject> availableSigns = new(roadSignPrefabs);
+        availableSigns.RemoveAll(sign => usedSignNames.Contains(sign.name));
 
-        // Clear previous round signs and prepare to store new ones
-        previousRoundSignNames.Clear();
+        int signsToSelect = Mathf.Min(winningSlots.Length, availableSigns.Count);
+        currentRoundSignNames.Clear();
 
         for (int i = 0; i < signsToSelect; i++)
         {
-            if (availableSigns.Count == 0) break;
-
-            int randomIndex = Random.Range(0, availableSigns.Count);
-            GameObject selected = availableSigns[randomIndex];
-
-            // Store name
+            int index = Random.Range(0, availableSigns.Count);
+            GameObject selected = availableSigns[index];
             string signName = selected.name;
             currentRoundSignNames.Add(signName);
-            previousRoundSignNames.Add(signName); // Store for next round's reference
+            usedSignNames.Add(signName);
+            availableSigns.RemoveAt(index);
+        }
+    }
 
-            // Remove from available pool
-            availableSigns.RemoveAt(randomIndex);
+    private void PopulateInventoryWithCurrentSigns()
+    {
+        // Kill all fade tweens before changing objects
+        foreach (Tween t in activeFadeTweens)
+            if (t.IsActive()) t.Kill();
+        activeFadeTweens.Clear();
 
-            Debug.Log($"Selected sign for slot {i}: {signName}");
+        HashSet<string> allSignNames = new(currentRoundSignNames);
+        List<string> distractors = new();
+
+        foreach (var prefab in roadSignPrefabs)
+            if (!allSignNames.Contains(prefab.name)) distractors.Add(prefab.name);
+
+        // Shuffle distractors
+        for (int i = distractors.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (distractors[i], distractors[j]) = (distractors[j], distractors[i]);
+        }
+
+        foreach (var d in distractors)
+        {
+            if (allSignNames.Count >= 15) break;
+            allSignNames.Add(d);
+        }
+
+        List<string> shuffledSigns = new(allSignNames);
+        for (int i = shuffledSigns.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (shuffledSigns[i], shuffledSigns[j]) = (shuffledSigns[j], shuffledSigns[i]);
+        }
+
+        // Destroy old signs
+        for (int i = 0; i < roadSignsContainer.childCount; i++)
+        {
+            Transform slot = roadSignsContainer.GetChild(i);
+            if (slot.childCount > 0)
+                Destroy(slot.GetChild(0).gameObject);
+        }
+
+        // Instantiate new signs
+        for (int i = 0; i < roadSignsContainer.childCount && i < shuffledSigns.Count; i++)
+        {
+            Transform slot = roadSignsContainer.GetChild(i);
+            string signName = shuffledSigns[i];
+
+            GameObject prefab = roadSignPrefabs.Find(p => p.name == signName);
+            if (prefab != null)
+            {
+            GameObject newSign = Instantiate(prefab, slot);
+            newSign.name = signName;
+
+            // Ensure CanvasGroup exists and alpha is 0 for fade-in
+            CanvasGroup cg = newSign.GetComponent<CanvasGroup>();
+            if (cg == null) cg = newSign.AddComponent<CanvasGroup>();
+            cg.alpha = 0;
+
+            var draggable = newSign.GetComponent<DraggableItem>();
+            if (draggable != null)
+                draggable.originalParent = slot;
+
+            }
         }
     }
 
     private bool AreAllSlotsCorrect()
     {
-        // First make sure we have signs assigned
-        if (currentRoundSignNames.Count == 0)
-        {
-            return false;
-        }
+        if (currentRoundSignNames.Count == 0) return false;
 
-        // Check each winning slot
         for (int i = 0; i < winningSlots.Length && i < currentRoundSignNames.Count; i++)
         {
-            InventorySlot slot = winningSlots[i];
+            var slot = winningSlots[i];
+            if (slot == null || slot.transform.childCount == 0) return false;
 
-            // If slot is null, log an error but continue checking others
-            if (slot == null)
-            {
-                Debug.LogError($"Winning slot {i} is null!");
-                return false;
-            }
-
-            // If slot is empty, not correct
-            if (slot.transform.childCount == 0)
-            {
-                return false;
-            }
-
-            // Get the sign in this slot
             Transform child = slot.transform.GetChild(0);
-            if (child == null)
-            {
-                Debug.LogError($"Child in slot {i} is null!");
-                return false;
-            }
-
-            string signName = child.name;
-
-            // Remove "(Clone)" suffix if present
-            if (signName.EndsWith("(Clone)"))
-                signName = signName.Substring(0, signName.Length - 7);
-
-            // Compare with expected name
-            if (signName != currentRoundSignNames[i])
-            {
-                Debug.Log($"Slot {i} has wrong sign: expected {currentRoundSignNames[i]}, got {signName}");
-                return false;
-            }
+            string name = child.name.Replace("(Clone)", "");
+            if (name != currentRoundSignNames[i]) return false;
         }
 
-        Debug.Log("All slots have correct signs!");
         return true;
     }
 
     private void OnRoundComplete()
     {
         Debug.Log("Round Complete!");
-
-        // Show next button with breathing animation
         if (nextButton != null)
         {
-            // Make button visible (without changing its scale)
             nextButton.gameObject.SetActive(true);
-            
-            // Start breathing animation immediately from its current scale
             StartButtonBreathingAnimation();
         }
-        
-        // Optional: Display a "congratulations" message if desired
-        if (currentRound >= totalRounds)
-        {
-            Debug.Log($"Reached round {currentRound} of {totalRounds}! Keep going!");
-            // You can add additional UI feedback here if desired
-        }
     }
-    
-    // Start the breathing animation for the next button
+
     private void StartButtonBreathingAnimation()
     {
-        // Stop any existing tween
-        if (buttonBreatheTween != null)
-        {
-            buttonBreatheTween.Kill();
-        }
-        
-        // Store the original scale to return to between pulses
+        if (buttonBreatheTween != null) buttonBreatheTween.Kill();
+
         Vector3 originalScale = nextButton.transform.localScale;
         Vector3 targetScale = originalScale * buttonBreathScale;
-        
-        // Create breathing animation (scale in and out)
+
         buttonBreatheTween = nextButton.transform
             .DOScale(targetScale, buttonBreatheDuration)
             .SetEase(Ease.InOutQuad)
-            .SetLoops(-1, LoopType.Yoyo); // -1 means infinite loops
+            .SetLoops(-1, LoopType.Yoyo);
     }
 
     public void ResetCurrentRound()
     {
-        // Return signs to container
         ReturnSignsToContainer();
-
-        // Reset round state
         roundComplete = false;
 
-        // Hide next button
         if (nextButton != null)
         {
-            // Kill any existing tween
             if (buttonBreatheTween != null)
             {
                 buttonBreatheTween.Kill();
                 buttonBreatheTween = null;
             }
-            
             nextButton.gameObject.SetActive(false);
         }
     }
 
     private void ReturnSignsToContainer()
     {
-        // Find all draggable items in winning slots
+        foreach (Tween t in activeFadeTweens)
+            if (t.IsActive()) t.Kill();
+        activeFadeTweens.Clear();
+
         foreach (InventorySlot slot in winningSlots)
         {
             if (slot == null) continue;
 
-            // Get all children
-            List<Transform> children = new List<Transform>();
+            List<Transform> children = new();
             foreach (Transform child in slot.transform)
-            {
                 children.Add(child);
-            }
 
-            // Return each child to its original inventory slot
             foreach (Transform child in children)
             {
                 if (child == null) continue;
 
                 DraggableItem draggable = child.GetComponent<DraggableItem>();
                 if (draggable != null)
-                {
-                    // Use the ReturnToOriginalSlot method to return to original slot
                     draggable.ReturnToOriginalSlot();
-                }
                 else
-                {
-                    // Fallback if no DraggableItem component (shouldn't happen)
                     child.SetParent(roadSignsContainer);
-                    Debug.LogWarning($"No DraggableItem component on {child.name}");
-                }
             }
         }
+    }
+
+    public void ResetUsedSigns()
+    {
+        usedSignNames.Clear();
     }
 
     public void SetQuizPanelActive(bool active)
     {
         isQuizPanelActive = active;
     }
+    public void ShuffleRoadSigns()
+{
+    PopulateInventoryWithCurrentSigns(); // or your intended shuffle logic
+}
 }
