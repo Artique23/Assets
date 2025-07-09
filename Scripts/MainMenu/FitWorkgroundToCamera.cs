@@ -59,7 +59,7 @@ public class FitWorkgroundToCamera : MonoBehaviour
     {
         if (targetCamera == null)
         {
-            Debug.LogError("No camera assigned to FitWorkgroundToCamera!");
+            
             return;
         }
 
@@ -102,7 +102,7 @@ public class FitWorkgroundToCamera : MonoBehaviour
         // Apply the new orthographic size
         targetCamera.orthographicSize = newSize;
 
-        Debug.Log($"Adjusted orthographic camera - Aspect: {currentAspect:F2}, Size: {newSize:F2}");
+        
     }
 
     private void AdjustPerspectiveCamera(float currentAspect)
@@ -132,7 +132,7 @@ public class FitWorkgroundToCamera : MonoBehaviour
         // Apply the new field of view
         targetCamera.fieldOfView = newFOV;
 
-        Debug.Log($"Adjusted perspective camera - Aspect: {currentAspect:F2}, FOV: {newFOV:F2}");
+        
     }
 
     // Editor button to test adjustment
