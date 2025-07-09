@@ -61,11 +61,11 @@ public class Stage1TutorialManager : StageBaseManager
         {
             // Update StageScoreManager with our test score
             StageScoreManager.Instance.SetPointsForTesting(testScore);
-            
+
             // Show our test score in the UI
             if (scoreText != null)
                 scoreText.text = "Test Score: " + testScore;
-                
+
             // Show test controls if enabled
             if (showTestControls)
             {
@@ -75,14 +75,14 @@ public class Stage1TutorialManager : StageBaseManager
                     testScore += 50;
                     Debug.Log("Test Score increased: " + testScore);
                 }
-                
+
                 if (Input.GetKeyDown(KeyCode.DownArrow))
                 {
                     testScore -= 50;
                     testScore = Mathf.Max(0, testScore); // Don't go below 0
                     Debug.Log("Test Score decreased: " + testScore);
                 }
-                
+
                 // Press T to test the win panel
                 if (Input.GetKeyDown(KeyCode.T) && parkingZone != null)
                 {
@@ -97,6 +97,7 @@ public class Stage1TutorialManager : StageBaseManager
             if (scoreText != null)
                 scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
         }
+        
     }
 
     void HideAllControls()

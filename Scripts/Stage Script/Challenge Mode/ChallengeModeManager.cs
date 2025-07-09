@@ -5,6 +5,8 @@ using TMPro;
 
 public class ChallengeModeManager : MonoBehaviour
 {
+    public static ChallengeModeManager Instance { get; private set; }
+
     [Header("UI & References")]
     public CarControls carControls;
     public Button acceleratorButton;
@@ -28,6 +30,19 @@ public class ChallengeModeManager : MonoBehaviour
     public GameObject[] objectiveMarkers;
     public ParkingZone parkingZone;
     private int currentObjectiveIndex = 0;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
 
     void Start()
     {
@@ -112,4 +127,16 @@ public class ChallengeModeManager : MonoBehaviour
         Debug.Log("Game Over - All lives lost");
         // Optional: Show Game Over UI, return to menu, etc.
     }
+
+    public void OnChallengeCollision(string tag)
+    {
+        if (currentLives <= 0) return;
+
+        if (tag == "NPC" || tag == "Environment" || tag == "AutonomousVehicle")
+        {
+            Debug.Log("Challenge mode collision with: " + tag);
+            ApplyPunishment();
+        }
+    }
+
 }

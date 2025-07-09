@@ -132,6 +132,13 @@ public class CarControls : MonoBehaviour
         UpdateReverseLight();
         UpdateSpeedometer();
         ClampSpeed(); // Hard speed cap
+
+        // Check for score-based lose condition
+        if (!hasLost && StageScoreManager.Instance != null && StageScoreManager.Instance.GetPoints() <= -500)
+        {
+            TriggerLose("Score too low! Game over.");
+        }
+
     }
 
     // SPEED LIMIT & SMOOTH ACCELERATION
