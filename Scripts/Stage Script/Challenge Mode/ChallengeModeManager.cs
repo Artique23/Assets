@@ -31,6 +31,10 @@ public class ChallengeModeManager : MonoBehaviour
     public ParkingZone parkingZone;
     private int currentObjectiveIndex = 0;
 
+    [Header("Lose UI")]
+    public GameObject losePanel; // Assign in Inspector
+
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -124,9 +128,16 @@ public class ChallengeModeManager : MonoBehaviour
     void GameOver()
     {
         carControls.carPoweredOn = false;
+
+        if (losePanel != null)
+            losePanel.SetActive(true);
+
+        // Optional: Freeze game
+        Time.timeScale = 0f;
+
         Debug.Log("Game Over - All lives lost");
-        // Optional: Show Game Over UI, return to menu, etc.
     }
+
 
     public void OnChallengeCollision(string tag)
     {
