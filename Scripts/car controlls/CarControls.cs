@@ -134,7 +134,7 @@ public class CarControls : MonoBehaviour
         ClampSpeed(); // Hard speed cap
 
         // Check for score-based lose condition
-        if (!hasLost && StageScoreManager.Instance != null && StageScoreManager.Instance.GetPoints() <= -2000)
+        if (!hasLost && StageScoreManager.Instance != null && StageScoreManager.Instance.GetPoints() <= -500)
         {
             TriggerLose("Score too low! Game over.");
         }

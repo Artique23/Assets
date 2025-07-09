@@ -21,7 +21,7 @@ public class LightingReset : MonoBehaviour
         if (scene.name == "MainMenuScene")
         {
             // Force realtime lighting update
-            Debug.Log("Resetting lighting in main menu scene");
+            
             DynamicGI.UpdateEnvironment();
             
             // If you have baked lighting, also reset shadow maps

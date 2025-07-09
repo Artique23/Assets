@@ -5,6 +5,8 @@ using TMPro;
 
 public class ChallengeModeManager : MonoBehaviour
 {
+    public static ChallengeModeManager Instance { get; private set; }
+
     [Header("UI & References")]
     public CarControls carControls;
     public Button acceleratorButton;
@@ -28,6 +30,19 @@ public class ChallengeModeManager : MonoBehaviour
     public GameObject[] objectiveMarkers;
     public ParkingZone parkingZone;
     private int currentObjectiveIndex = 0;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
 
     void Start()
     {
