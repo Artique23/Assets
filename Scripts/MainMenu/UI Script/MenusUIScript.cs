@@ -16,6 +16,11 @@ public class MenusUIScript : MonoBehaviour
     [SerializeField] float bottomY, baseY;
     [SerializeField] float tweenDuration;
 
+    [SerializeField] private Button stage1Button;
+    [SerializeField] private Button stage2Button;
+    [SerializeField] private Button stage3Button;
+    [SerializeField] private Button stage4Button;
+
     GameManagerSaveAndLoad gameManager;
 
     #endregion
@@ -70,6 +75,7 @@ public class MenusUIScript : MonoBehaviour
         JPXCustomize.SetActive(false);
         JhayluxCustomize.SetActive(false);
         DreivusCustomize.SetActive(false);
+         UpdateLevelButtons();
     }
 
     #endregion
@@ -77,6 +83,16 @@ public class MenusUIScript : MonoBehaviour
 
     #region Canvas/Panel Activation
 
+    public void UpdateLevelButtons()
+    {
+        if (PlayerManager.Instance != null)
+        {
+            stage1Button.interactable = PlayerManager.Instance.IsLevelUnlocked(0);
+            stage2Button.interactable = PlayerManager.Instance.IsLevelUnlocked(1);
+            stage3Button.interactable = PlayerManager.Instance.IsLevelUnlocked(2);
+            stage4Button.interactable = PlayerManager.Instance.IsLevelUnlocked(3);
+        }
+    }
     public void ShowCustomizeMenu()
     {
         Debug.Log("Customize Menu is Visible...");

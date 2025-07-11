@@ -152,6 +152,7 @@ public class CarlightController : MonoBehaviour
 
     public void ToggleHeadlights(bool on)
     {
+        headlightsOn = on;
         headlightLeft.enabled = on;
         headlightRight.enabled = on;
         tailLightLeft.enabled = on;

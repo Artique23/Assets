@@ -217,6 +217,22 @@ public class ParkingZone : MonoBehaviour
                     // Success!
                     StageScoreManager.Instance.AddPoints(1000);
 
+                    int currentStageIndex = SceneManager.GetActiveScene().buildIndex; 
+                    int nextStageIndex = currentStageIndex + 1;
+
+                    if (PlayerManager.Instance != null)
+                    {
+                        PlayerManager.Instance.UnlockLevel(nextStageIndex);
+
+                        var menuScript = FindObjectOfType<MenusUIScript>();
+                        if (menuScript != null)
+                            menuScript.UpdateLevelButtons();
+                    }
+                    else
+                    {
+                        Debug.LogWarning("⚠️ PlayerManager.Instance is NULL — skipping level unlock.");
+                    }
+
                     // Show win panel!
                     ShowWinPanel();
 

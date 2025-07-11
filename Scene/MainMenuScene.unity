@@ -6153,6 +6153,10 @@ MonoBehaviour:
   bottomY: -190
   baseY: 31.80176
   tweenDuration: 0.5
+  stage1Button: {fileID: 2092633894}
+  stage2Button: {fileID: 269564471}
+  stage3Button: {fileID: 1725489765}
+  stage4Button: {fileID: 1586561096}
   startMenuCanvasGroup: {fileID: 1857400268}
   fadeInDuration: 0.3
   fadeOutDuration: 0.3
@@ -12559,6 +12563,7 @@ MonoBehaviour:
   carsUnlocked: 1
   unlockedCars: 000000
   selectedCar: 0
+  unlockedLevels: 00000000
 --- !u!4 &1479832483
 Transform:
   m_ObjectHideFlags: 0
