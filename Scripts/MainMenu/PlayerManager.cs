@@ -13,10 +13,11 @@ public class PlayerManager : MonoBehaviour
     private int[] selectedColorIndices;
     // Player information
     [SerializeField] private int playerCurrency = 20;
-    [SerializeField] private int carsUnlocked = 3; // Start with 1 car unlocked
+    [SerializeField] private bool[] hasPlayedStage = new bool[4];
+    [SerializeField] private int carsUnlocked = 1; // Start with 1 car unlocked
     [SerializeField] private bool[] unlockedCars = new bool[3]; // Track which cars are unlocked
     [SerializeField] private int selectedCar = 0; // Which car is selected now
-    
+    [SerializeField] private bool[] unlockedLevels = new bool[4];
     // Path to save file
     private string saveFilePath;
     
@@ -44,6 +45,26 @@ public class PlayerManager : MonoBehaviour
             }
             
             Debug.Log("Updated currency to: " + playerCurrency);
+        }
+    }
+
+// Adjusted method: subtract 1 to match hasPlayedStage array
+    public bool HasPlayedStage(int sceneBuildIndex)
+    {
+        int stageIndex = sceneBuildIndex - 1;
+        if (stageIndex >= 0 && stageIndex < hasPlayedStage.Length)
+            return hasPlayedStage[stageIndex];
+        return false;
+    }
+
+        
+    public void MarkStageAsPlayed(int sceneBuildIndex)
+    {
+        int stageIndex = sceneBuildIndex - 1;
+        if (stageIndex >= 0 && stageIndex < hasPlayedStage.Length)
+        {
+            hasPlayedStage[stageIndex] = true;
+            SavePlayerData();
         }
     }
 
@@ -77,49 +98,25 @@ public class PlayerManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         // Set save file location
-        saveFilePath = Path.Combine(Application.persistentDataPath, "playerProgress.json");
+        saveFilePath = System.IO.Path.Combine(Application.persistentDataPath, "player_save.json");
 
         // Set the first car to be always unlocked
         for (int i = 0; i < unlockedCars.Length; i++)
         {
-            unlockedCars[i] = true;
+             unlockedCars[i] = (i == 0);
         }
+            unlockedLevels[0] = true;
+        for (int i = 1; i < unlockedLevels.Length; i++)
+        unlockedLevels[i] = false;
 
         // Load player data when game starts
         LoadPlayerData();
 
-        EnsureAllCarsUnlocked();
+
         
         Debug.Log("Save file is at: " + saveFilePath);
     }
- private void EnsureAllCarsUnlocked()
-    {
-        bool needsSave = false;
-        
-        // Make sure all cars are unlocked
-        for (int i = 0; i < unlockedCars.Length; i++)
-        {
-            if (!unlockedCars[i])
-            {
-                unlockedCars[i] = true;
-                needsSave = true;
-            }
-        }
-        
-        // Update the cars unlocked count
-        if (carsUnlocked != unlockedCars.Length)
-        {
-            carsUnlocked = unlockedCars.Length;
-            needsSave = true;
-        }
-        
-        // Save if changes were made
-        if (needsSave)
-        {
-            SavePlayerData();
-        }
-    }
-    
+
     public int GetCarColorIndex(int carIndex)
     {
         if (!selectedCarColors.ContainsKey(carIndex))
@@ -135,7 +132,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     // Functions for other scripts to use
-
+ 
     public int GetCurrency()
     {
         return playerCurrency;
@@ -207,19 +204,58 @@ public class PlayerManager : MonoBehaviour
         SavePlayerData();
     }
     
+        public bool IsLevelUnlocked(int levelIndex)
+    {
+        if (levelIndex >= 0 && levelIndex < unlockedLevels.Length)
+            return unlockedLevels[levelIndex];
+        return false;
+    }
+public void UnlockLevel(int levelIndex)
+{
+    if (levelIndex >= 0 && levelIndex < unlockedLevels.Length)
+    {
+        if (!unlockedLevels[levelIndex])
+        {
+            Debug.Log($"✅ Unlocking Level {levelIndex}");
+            unlockedLevels[levelIndex] = true;
+            SavePlayerData();
+        }
+        else
+        {
+            Debug.Log($"ℹ️ Level {levelIndex} is already unlocked.");
+        }
+    }
+    else
+    {
+        Debug.LogWarning($"❌ Invalid level index: {levelIndex}. Max allowed: {unlockedLevels.Length - 1}");
+    }
+}
+
+    
     // Reset all game progress (for testing)
     public void ResetProgress()
     {
         playerCurrency = 0;
         carsUnlocked = 1;
         selectedCar = 0;
-        
+
         // Reset car unlock states
         for (int i = 0; i < unlockedCars.Length; i++)
         {
             unlockedCars[i] = (i == 0); // Only first car is unlocked
         }
-        
+            // Reset level unlock states
+        for (int i = 0; i < unlockedLevels.Length; i++)
+        {
+            unlockedLevels[i] = (i == 0); // Only first level is unlocked
+        }
+
+        // Reset played stages
+        for (int i = 0; i < hasPlayedStage.Length; i++)
+        {
+            hasPlayedStage[i] = false;
+        }
+
         SavePlayerData();
         Debug.Log("Game progress has been reset!");
     }
@@ -228,83 +264,106 @@ public class PlayerManager : MonoBehaviour
     
 public void SavePlayerData()
 {
+   
     try
-    {
-        // Create a new PlayerSaveData object with our current values
-        PlayerSaveData data = new PlayerSaveData
         {
-            currency = playerCurrency,
-            carsUnlocked = carsUnlocked,
-            unlockedCars = unlockedCars,
-            selectedCarIndex = selectedCar,
-            selectedCarColorIndices = new List<int>()
-        };
+            // Create a new PlayerSaveData object with our current values
 
-        for (int i = 0; i < unlockedCars.Length; i++)
-        {
-            int colorIndex = GetCarColorIndex(i);
-            data.selectedCarColorIndices.Add(colorIndex);
+            PlayerSaveData data = new PlayerSaveData
+            {
+                currency = playerCurrency,
+                carsUnlocked = carsUnlocked,
+                unlockedCars = unlockedCars,
+                unlockedLevels = unlockedLevels,
+                hasPlayedStage = hasPlayedStage,
+                selectedCarIndex = selectedCar,
+                selectedCarColorIndices = new List<int>()
+                
+            };
+
+            for (int i = 0; i < unlockedCars.Length; i++)
+            {
+                int colorIndex = GetCarColorIndex(i);
+                data.selectedCarColorIndices.Add(colorIndex);
+            }
+            // Convert it to JSON text
+            string jsonData = JsonUtility.ToJson(data, true);
+
+            // Save to file
+            File.WriteAllText(saveFilePath, jsonData);
+
+            Debug.Log("Player data saved successfully!");
         }
-
-        // Convert it to JSON text
-        string jsonData = JsonUtility.ToJson(data, true);
-
-        // Save to file
-        File.WriteAllText(saveFilePath, jsonData);
-
-        Debug.Log("Player data saved successfully!");
-    }
-    catch (System.Exception e)
-    {
-        Debug.LogError("Failed to save player data: " + e.Message);
-    }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Failed to save player data: " + e.Message);
+        }
 }
 private void LoadPlayerData()
 {
     try
-    {
-        if (File.Exists(saveFilePath))
         {
-            string jsonData = File.ReadAllText(saveFilePath);
-            PlayerSaveData data = JsonUtility.FromJson<PlayerSaveData>(jsonData);
-
-            playerCurrency = data.currency;
-            carsUnlocked = data.carsUnlocked;
-
-            if (data.unlockedCars != null && data.unlockedCars.Length > 0)
+            if (File.Exists(saveFilePath))
             {
-                int count = Mathf.Min(unlockedCars.Length, data.unlockedCars.Length);
-                for (int i = 0; i < count; i++)
+                string jsonData = File.ReadAllText(saveFilePath);
+                PlayerSaveData data = JsonUtility.FromJson<PlayerSaveData>(jsonData);
+
+                playerCurrency = data.currency;
+                carsUnlocked = data.carsUnlocked;
+
+                if (data.unlockedCars != null && data.unlockedCars.Length > 0)
                 {
-                    unlockedCars[i] = data.unlockedCars[i];
+                    int count = Mathf.Min(unlockedCars.Length, data.unlockedCars.Length);
+                    for (int i = 0; i < count; i++)
+                    {
+                        unlockedCars[i] = data.unlockedCars[i];
+                    }
+                }
+
+                if (data.selectedCarIndex >= 0 && data.selectedCarIndex < unlockedCars.Length)
+                {
+                    selectedCar = data.selectedCarIndex;
+                }
+
+                // ✅ Load color data
+                if (data.selectedCarColorIndices != null)
+                {
+                    for (int i = 0; i < data.selectedCarColorIndices.Count; i++)
+                    {
+                        selectedCarColors[i] = data.selectedCarColorIndices[i];
+                    }
+                }
+                if (data.unlockedLevels != null && data.unlockedLevels.Length > 0)
+                {
+                    int count = Mathf.Min(unlockedLevels.Length, data.unlockedLevels.Length);
+                    for (int i = 0; i < count; i++)
+                        unlockedLevels[i] = data.unlockedLevels[i];
+                }
+                if (data.hasPlayedStage != null && data.hasPlayedStage.Length == hasPlayedStage.Length)
+                {
+                    for (int i = 0; i < data.hasPlayedStage.Length; i++)
+                        hasPlayedStage[i] = data.hasPlayedStage[i];
                 }
             }
-
-            if (data.selectedCarIndex >= 0 && data.selectedCarIndex < unlockedCars.Length)
+            else
             {
-                selectedCar = data.selectedCarIndex;
-            }
 
-            // ✅ Load color data
-            if (data.selectedCarColorIndices != null)
-            {
-                for (int i = 0; i < data.selectedCarColorIndices.Count; i++)
-                {
-                    selectedCarColors[i] = data.selectedCarColorIndices[i];
-                }
             }
-
-            Debug.Log("Player data loaded successfully! Currency: " + playerCurrency);
         }
-        else
+        catch (System.Exception e)
         {
-            Debug.Log("No save file found. Using default values.");
+
         }
-    }
-    catch (System.Exception e)
+}
+
+public void UnlockAllStages()
+{
+    for (int i = 0; i < unlockedLevels.Length; i++)
     {
-        Debug.LogError("Failed to load player data: " + e.Message);
+        unlockedLevels[i] = true;
     }
+    SavePlayerData();
+    Debug.Log("✅ All stages unlocked!");
 }
 
     // Add this method to your PlayerManager class
@@ -312,10 +371,10 @@ private void LoadPlayerData()
     {
         // Add 10 currency
         playerCurrency += 10;
-        
+
         // Save the data immediately
         SavePlayerData();
-        
+
         // Find and update all GameManagerSaveAndLoad instances
         var managers = FindObjectsOfType<GameManagerSaveAndLoad>();
         foreach (var manager in managers)
@@ -325,7 +384,7 @@ private void LoadPlayerData()
                 manager.UpdateUI(); // Call UpdateUI directly instead of using SendMessage
             }
         }
-        
+
         Debug.Log($"Added 10 currency. New total: {playerCurrency}");
     }
 }
@@ -338,6 +397,14 @@ public class PlayerSaveData
     public int currency;
     public int carsUnlocked;
     public bool[] unlockedCars;
+    public bool[] hasPlayedStage;
+    public bool[] unlockedLevels;
     public int selectedCarIndex;
     public List<int> selectedCarColorIndices;
+}
+[System.Serializable]
+public class StageStarEntry
+{
+    public int stageIndex;
+    public int starsEarned;
 }
