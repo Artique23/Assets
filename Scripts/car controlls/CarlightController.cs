@@ -164,6 +164,11 @@ public class CarlightController : MonoBehaviour
         brakeLightLeft.enabled = on;
         brakeLightRight.enabled = on;
     }
+    public float GetCurrentHeadlightTime()
+    {
+        return currentHeadlightTime;
+    }
+
 
     public void ToggleLeftSignal(bool on)
     {

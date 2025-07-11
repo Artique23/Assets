@@ -230,9 +230,10 @@ public class ParkingZone : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogWarning("⚠️ PlayerManager.Instance is NULL — skipping level unlock.");
+
                     }
 
+                PlayerManager.Instance.MarkStageAsPlayed(SceneManager.GetActiveScene().buildIndex);
                     // Show win panel!
                     ShowWinPanel();
 
@@ -246,6 +247,8 @@ public class ParkingZone : MonoBehaviour
                 parkedTimer = 0f;
             }
         }
+        
+        
 
         // Test key to show win panel (press Z)
         // Simple Z key handling without complex conditions
@@ -253,7 +256,7 @@ public class ParkingZone : MonoBehaviour
         {
             Debug.Log("Z KEY PRESSED!");
             zKeyWasPressed = true;
-            
+
             // Force StageScoreManager to use test score
             Stage1TutorialManager tutorialManager = FindObjectOfType<Stage1TutorialManager>();
             if (tutorialManager != null && tutorialManager.testMode)
@@ -261,7 +264,7 @@ public class ParkingZone : MonoBehaviour
                 Debug.Log("Using test score: " + tutorialManager.testScore);
                 StageScoreManager.Instance.SetPointsForTesting(tutorialManager.testScore);
             }
-            
+
             // Directly show win panel without additional conditions
             ShowWinPanel();
         }
@@ -292,7 +295,6 @@ public class ParkingZone : MonoBehaviour
             StartCoroutine(HideDialogAfter(delay));
         }
     }
-
     IEnumerator HideDialogAfter(float seconds)
     {
         yield return new WaitForSeconds(seconds);
@@ -339,6 +341,15 @@ public class ParkingZone : MonoBehaviour
 
         // Get score
         int score = StageScoreManager.Instance.GetPoints();
+        int starsEarned = 0;
+        if (score >= star3Threshold) starsEarned = 3;
+        else if (score >= star2Threshold) starsEarned = 2;
+        else if (score >= star1Threshold) starsEarned = 1;
+
+        // Save this to PlayerManager
+        int stageIndex = SceneManager.GetActiveScene().buildIndex;
+        
+        PlayerManager.Instance.AddCurrency(starsEarned);
 
         // Update text elements
         if (scoreText != null)

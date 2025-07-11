@@ -13,6 +13,7 @@ public class PlayerManager : MonoBehaviour
     private int[] selectedColorIndices;
     // Player information
     [SerializeField] private int playerCurrency = 20;
+    [SerializeField] private bool[] hasPlayedStage = new bool[4];
     [SerializeField] private int carsUnlocked = 3; // Start with 1 car unlocked
     [SerializeField] private bool[] unlockedCars = new bool[3]; // Track which cars are unlocked
     [SerializeField] private int selectedCar = 0; // Which car is selected now
@@ -47,6 +48,21 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public bool HasPlayedStage(int stageIndex)
+    {
+        if (stageIndex >= 0 && stageIndex < hasPlayedStage.Length)
+            return hasPlayedStage[stageIndex];
+        return false;
+    }
+    
+    public void MarkStageAsPlayed(int stageIndex)
+    {
+        if (stageIndex >= 0 && stageIndex < hasPlayedStage.Length)
+        {
+            hasPlayedStage[stageIndex] = true;
+            SavePlayerData();
+        }
+    }
 
     void Awake()
     {
@@ -138,7 +154,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     // Functions for other scripts to use
-
+ 
     public int GetCurrency()
     {
         return playerCurrency;
@@ -270,6 +286,7 @@ public void SavePlayerData()
                 carsUnlocked = carsUnlocked,
                 unlockedCars = unlockedCars,
                 unlockedLevels = unlockedLevels,
+                hasPlayedStage = hasPlayedStage,
                 selectedCarIndex = selectedCar,
                 selectedCarColorIndices = new List<int>()
                 
@@ -280,7 +297,6 @@ public void SavePlayerData()
                 int colorIndex = GetCarColorIndex(i);
                 data.selectedCarColorIndices.Add(colorIndex);
             }
-
             // Convert it to JSON text
             string jsonData = JsonUtility.ToJson(data, true);
 
@@ -334,17 +350,20 @@ private void LoadPlayerData()
                     for (int i = 0; i < count; i++)
                         unlockedLevels[i] = data.unlockedLevels[i];
                 }
-
-                Debug.Log("Player data loaded successfully! Currency: " + playerCurrency);
+                if (data.hasPlayedStage != null && data.hasPlayedStage.Length == hasPlayedStage.Length)
+                {
+                    for (int i = 0; i < data.hasPlayedStage.Length; i++)
+                        hasPlayedStage[i] = data.hasPlayedStage[i];
+                }
             }
             else
             {
-                Debug.Log("No save file found. Using default values.");
+
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Failed to load player data: " + e.Message);
+
         }
 }
 
@@ -379,7 +398,14 @@ public class PlayerSaveData
     public int currency;
     public int carsUnlocked;
     public bool[] unlockedCars;
+    public bool[] hasPlayedStage;
     public bool[] unlockedLevels;
     public int selectedCarIndex;
     public List<int> selectedCarColorIndices;
+}
+[System.Serializable]
+public class StageStarEntry
+{
+    public int stageIndex;
+    public int starsEarned;
 }
