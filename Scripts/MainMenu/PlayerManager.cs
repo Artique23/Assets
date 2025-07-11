@@ -14,7 +14,7 @@ public class PlayerManager : MonoBehaviour
     // Player information
     [SerializeField] private int playerCurrency = 20;
     [SerializeField] private bool[] hasPlayedStage = new bool[4];
-    [SerializeField] private int carsUnlocked = 3; // Start with 1 car unlocked
+    [SerializeField] private int carsUnlocked = 1; // Start with 1 car unlocked
     [SerializeField] private bool[] unlockedCars = new bool[3]; // Track which cars are unlocked
     [SerializeField] private int selectedCar = 0; // Which car is selected now
     [SerializeField] private bool[] unlockedLevels = new bool[4];
@@ -48,21 +48,26 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public bool HasPlayedStage(int stageIndex)
+// Adjusted method: subtract 1 to match hasPlayedStage array
+    public bool HasPlayedStage(int sceneBuildIndex)
     {
+        int stageIndex = sceneBuildIndex - 1;
         if (stageIndex >= 0 && stageIndex < hasPlayedStage.Length)
             return hasPlayedStage[stageIndex];
         return false;
     }
-    
-    public void MarkStageAsPlayed(int stageIndex)
+
+        
+    public void MarkStageAsPlayed(int sceneBuildIndex)
     {
+        int stageIndex = sceneBuildIndex - 1;
         if (stageIndex >= 0 && stageIndex < hasPlayedStage.Length)
         {
             hasPlayedStage[stageIndex] = true;
             SavePlayerData();
         }
     }
+
 
     void Awake()
     {
@@ -93,12 +98,12 @@ public class PlayerManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         // Set save file location
-        saveFilePath = Path.Combine(Application.persistentDataPath, "playerProgress.json");
+        saveFilePath = System.IO.Path.Combine(Application.persistentDataPath, "player_save.json");
 
         // Set the first car to be always unlocked
         for (int i = 0; i < unlockedCars.Length; i++)
         {
-            unlockedCars[i] = true;
+             unlockedCars[i] = (i == 0);
         }
             unlockedLevels[0] = true;
         for (int i = 1; i < unlockedLevels.Length; i++)
@@ -107,38 +112,11 @@ public class PlayerManager : MonoBehaviour
         // Load player data when game starts
         LoadPlayerData();
 
-        EnsureAllCarsUnlocked();
+
         
         Debug.Log("Save file is at: " + saveFilePath);
     }
- private void EnsureAllCarsUnlocked()
-    {
-        bool needsSave = false;
-        
-        // Make sure all cars are unlocked
-        for (int i = 0; i < unlockedCars.Length; i++)
-        {
-            if (!unlockedCars[i])
-            {
-                unlockedCars[i] = true;
-                needsSave = true;
-            }
-        }
-        
-        // Update the cars unlocked count
-        if (carsUnlocked != unlockedCars.Length)
-        {
-            carsUnlocked = unlockedCars.Length;
-            needsSave = true;
-        }
-        
-        // Save if changes were made
-        if (needsSave)
-        {
-            SavePlayerData();
-        }
-    }
-    
+
     public int GetCarColorIndex(int carIndex)
     {
         if (!selectedCarColors.ContainsKey(carIndex))
@@ -266,6 +244,17 @@ public void UnlockLevel(int levelIndex)
         {
             unlockedCars[i] = (i == 0); // Only first car is unlocked
         }
+            // Reset level unlock states
+        for (int i = 0; i < unlockedLevels.Length; i++)
+        {
+            unlockedLevels[i] = (i == 0); // Only first level is unlocked
+        }
+
+        // Reset played stages
+        for (int i = 0; i < hasPlayedStage.Length; i++)
+        {
+            hasPlayedStage[i] = false;
+        }
 
         SavePlayerData();
         Debug.Log("Game progress has been reset!");
@@ -367,15 +356,25 @@ private void LoadPlayerData()
         }
 }
 
+public void UnlockAllStages()
+{
+    for (int i = 0; i < unlockedLevels.Length; i++)
+    {
+        unlockedLevels[i] = true;
+    }
+    SavePlayerData();
+    Debug.Log("✅ All stages unlocked!");
+}
+
     // Add this method to your PlayerManager class
     public void Add10Currency()
     {
         // Add 10 currency
         playerCurrency += 10;
-        
+
         // Save the data immediately
         SavePlayerData();
-        
+
         // Find and update all GameManagerSaveAndLoad instances
         var managers = FindObjectsOfType<GameManagerSaveAndLoad>();
         foreach (var manager in managers)
@@ -385,7 +384,7 @@ private void LoadPlayerData()
                 manager.UpdateUI(); // Call UpdateUI directly instead of using SendMessage
             }
         }
-        
+
         Debug.Log($"Added 10 currency. New total: {playerCurrency}");
     }
 }

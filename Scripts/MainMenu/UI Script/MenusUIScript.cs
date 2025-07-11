@@ -167,6 +167,32 @@ public class MenusUIScript : MonoBehaviour
         SettingsUI.SetActive(false);
         AboutUI.SetActive(false);
     }
+    public void DebugUnlockAllLevels()
+    {
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.UnlockAllStages(); // Unlock all levels
+            UpdateLevelButtons();                     // Refresh the button states
+            Debug.Log("✅ All stages unlocked and UI updated.");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ PlayerManager instance is null.");
+        }
+    }
+    public void ResetAllLevels()
+    {
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.ResetProgress(); // Your custom method to lock all levels again
+            UpdateLevelButtons();                    // Refresh the UI
+            Debug.Log("🔁 All stages reset and UI updated.");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ PlayerManager instance is null.");
+        }
+    }
 
     public void ShowStartMenu()
     {

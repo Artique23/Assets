@@ -13,15 +13,17 @@ public class TutorialPanelHandler : MonoBehaviour
     void Start()
     {
         tutorialPanel.SetActive(false); // Hide tutorial initially
-        int currentStageIndex = SceneManager.GetActiveScene().buildIndex;
+        int currentStageIndex = SceneManager.GetActiveScene().buildIndex - 1;
 
-        if (PlayerManager.Instance != null && PlayerManager.Instance.HasPlayedStage(currentStageIndex))
+        if (PlayerManager.Instance != null 
+            && currentStageIndex >= 0 
+            && PlayerManager.Instance.HasPlayedStage(currentStageIndex))
         {
-            skipButton.SetActive(true); // Show skip if stage has been played
+            skipButton.SetActive(true);
         }
         else
         {
-            skipButton.SetActive(false); // Hide skip if first time
+            skipButton.SetActive(false);
         }
     }
 

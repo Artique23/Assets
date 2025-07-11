@@ -217,17 +217,22 @@ public class ParkingZone : MonoBehaviour
                     // Success!
                     StageScoreManager.Instance.AddPoints(1000);
 
-                    int currentStageIndex = SceneManager.GetActiveScene().buildIndex; 
-                    int nextStageIndex = currentStageIndex + 1;
+                        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+                        int stageIndex = buildIndex - 1; // Adjust for Main Menu being at index 0
 
-                    if (PlayerManager.Instance != null)
-                    {
-                        PlayerManager.Instance.UnlockLevel(nextStageIndex);
+                        int nextStageIndex = stageIndex + 1;
 
-                        var menuScript = FindObjectOfType<MenusUIScript>();
-                        if (menuScript != null)
-                            menuScript.UpdateLevelButtons();
-                    }
+                        if (PlayerManager.Instance != null)
+                        {
+                            PlayerManager.Instance.UnlockLevel(nextStageIndex);
+                            
+                            var menuScript = FindObjectOfType<MenusUIScript>();
+                            if (menuScript != null)
+                                menuScript.UpdateLevelButtons();
+                            
+                            PlayerManager.Instance.MarkStageAsPlayed(stageIndex);
+                        }
+
                     else
                     {
 
@@ -347,7 +352,7 @@ public class ParkingZone : MonoBehaviour
         else if (score >= star1Threshold) starsEarned = 1;
 
         // Save this to PlayerManager
-        int stageIndex = SceneManager.GetActiveScene().buildIndex;
+        int stageIndex = SceneManager.GetActiveScene().buildIndex - 1;
         
         PlayerManager.Instance.AddCurrency(starsEarned);
 
