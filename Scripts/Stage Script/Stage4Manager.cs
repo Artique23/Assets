@@ -5,6 +5,9 @@ using TMPro;
 
 public class Stage4Manager : StageBaseManager
 {
+    public CarlightController carlightController; // Assign in Inspector
+
+
     [Header("UI & References")]
     public CarControls carControls; // Assign in Inspector
     public Button acceleratorButton;
@@ -41,6 +44,9 @@ public class Stage4Manager : StageBaseManager
     {
         if (scoreText != null)
             scoreText.text = "Score: " + StageScoreManager.Instance.GetPoints();
+
+        UpdateObjectiveVisibility();
+
     }
 
     void ShowAllControls()
@@ -60,7 +66,9 @@ public class Stage4Manager : StageBaseManager
         if (currentObjectiveIndex < objectiveMarkers.Length)
         {
             objectiveMarkers[currentObjectiveIndex].SetActive(true);
+            UpdateObjectiveVisibility(); // 👈 Immediately sync visibility with headlight state
         }
+
         else
         {
             parkingZone.canCheckParking = true;
@@ -82,6 +90,12 @@ public class Stage4Manager : StageBaseManager
 
         currentObjectiveIndex++;
         ActivateCurrentObjective();
+
+        if (carlightController != null)
+        {
+            carlightController.RechargeHeadlightBattery();
+        }
+
     }
 
     IEnumerator HideWadeAfterDelay(float delay)
@@ -89,4 +103,24 @@ public class Stage4Manager : StageBaseManager
         yield return new WaitForSeconds(delay);
         HideWade();
     }
+
+    void UpdateObjectiveVisibility()
+    {
+        if (carlightController == null || objectiveMarkers.Length == 0)
+        {
+            Debug.LogWarning("Missing carlightController or no objective markers.");
+            return;
+        }
+
+        bool lightsOn = carlightController.HeadlightsAreOn();
+        Debug.Log("Headlights on: " + lightsOn);
+
+        if (currentObjectiveIndex < objectiveMarkers.Length && objectiveMarkers[currentObjectiveIndex] != null)
+        {
+            objectiveMarkers[currentObjectiveIndex].SetActive(lightsOn);
+            Debug.Log("Toggled objective marker " + currentObjectiveIndex + " to " + lightsOn);
+        }
+    }
+
+
 }

@@ -27,6 +27,15 @@ public class CarlightController : MonoBehaviour
     private bool rightSignalOn = false;
     private bool hazardsOn = false;
 
+    [Header("Headlight Battery System")]
+    public float maxHeadlightTime = 10f;
+    public float headlightDrainRate = 1f; // per second
+    public float headlightRechargeAmount = 3f;
+
+    private float currentHeadlightTime;
+    private bool forceLightsOff = false;
+
+
     void Start()
     {
         headlightsOn = false;
@@ -42,7 +51,34 @@ public class CarlightController : MonoBehaviour
         if (brakeLightRight) brakeLightRight.enabled = false;
         if (turnSignalLeft) turnSignalLeft.enabled = false;
         if (turnSignalRight) turnSignalRight.enabled = false;
+
+        currentHeadlightTime = maxHeadlightTime;
+
     }
+
+    void Update()
+    {
+        // 🔋 Headlight battery system
+        if (headlightsOn)
+        {
+            currentHeadlightTime -= headlightDrainRate * Time.deltaTime;
+
+            if (currentHeadlightTime <= 0f)
+            {
+                currentHeadlightTime = 0f;
+                ToggleHeadlights(false); // auto shutoff
+                forceLightsOff = true;
+            }
+        }
+        else
+        {
+            if (currentHeadlightTime > 0f)
+                forceLightsOff = false;
+        }
+    }
+
+
+
 
     public void FlashAllLights(float duration = 0.3f)
     {
@@ -260,4 +296,16 @@ public class CarlightController : MonoBehaviour
     {
         return rightSignalOn;
     }
+
+    public bool HeadlightsAreOn()
+    {
+        return headlightsOn; // Assuming this is the internal bool you're using to track state
+    }
+
+    public void RechargeHeadlightBattery()
+    {
+        currentHeadlightTime = Mathf.Min(maxHeadlightTime, currentHeadlightTime + headlightRechargeAmount);
+    }
+
+
 }
