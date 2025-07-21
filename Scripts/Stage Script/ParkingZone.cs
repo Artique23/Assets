@@ -217,6 +217,28 @@ public class ParkingZone : MonoBehaviour
                     // Success!
                     StageScoreManager.Instance.AddPoints(1000);
 
+                        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+                        int stageIndex = buildIndex - 1; // Adjust for Main Menu being at index 0
+
+                        int nextStageIndex = stageIndex + 1;
+
+                        if (PlayerManager.Instance != null)
+                        {
+                            PlayerManager.Instance.UnlockLevel(nextStageIndex);
+                            
+                            var menuScript = FindObjectOfType<MenusUIScript>();
+                            if (menuScript != null)
+                                menuScript.UpdateLevelButtons();
+                            
+                            PlayerManager.Instance.MarkStageAsPlayed(stageIndex);
+                        }
+
+                    else
+                    {
+
+                    }
+
+                PlayerManager.Instance.MarkStageAsPlayed(SceneManager.GetActiveScene().buildIndex);
                     // Show win panel!
                     ShowWinPanel();
 
@@ -230,6 +252,8 @@ public class ParkingZone : MonoBehaviour
                 parkedTimer = 0f;
             }
         }
+        
+        
 
         // Test key to show win panel (press Z)
         // Simple Z key handling without complex conditions
@@ -237,7 +261,7 @@ public class ParkingZone : MonoBehaviour
         {
             Debug.Log("Z KEY PRESSED!");
             zKeyWasPressed = true;
-            
+
             // Force StageScoreManager to use test score
             Stage1TutorialManager tutorialManager = FindObjectOfType<Stage1TutorialManager>();
             if (tutorialManager != null && tutorialManager.testMode)
@@ -245,7 +269,7 @@ public class ParkingZone : MonoBehaviour
                 Debug.Log("Using test score: " + tutorialManager.testScore);
                 StageScoreManager.Instance.SetPointsForTesting(tutorialManager.testScore);
             }
-            
+
             // Directly show win panel without additional conditions
             ShowWinPanel();
         }
@@ -276,7 +300,6 @@ public class ParkingZone : MonoBehaviour
             StartCoroutine(HideDialogAfter(delay));
         }
     }
-
     IEnumerator HideDialogAfter(float seconds)
     {
         yield return new WaitForSeconds(seconds);
@@ -323,6 +346,15 @@ public class ParkingZone : MonoBehaviour
 
         // Get score
         int score = StageScoreManager.Instance.GetPoints();
+        int starsEarned = 0;
+        if (score >= star3Threshold) starsEarned = 3;
+        else if (score >= star2Threshold) starsEarned = 2;
+        else if (score >= star1Threshold) starsEarned = 1;
+
+        // Save this to PlayerManager
+        int stageIndex = SceneManager.GetActiveScene().buildIndex - 1;
+        
+        PlayerManager.Instance.AddCurrency(starsEarned);
 
         // Update text elements
         if (scoreText != null)

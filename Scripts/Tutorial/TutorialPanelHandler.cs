@@ -1,17 +1,30 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 public class TutorialPanelHandler : MonoBehaviour
 {
     public GameObject tutorialPanel;      // Parent holding all tutorial panels
     public GameObject[] panels;           // Individual panel GameObjects
     public GameObject cutsceneObject;     // Cutscene GameObject to check
-
+    public GameObject skipButton;
     private int currentPanelIndex = 0;
     private bool tutorialStarted = false;
 
     void Start()
     {
         tutorialPanel.SetActive(false); // Hide tutorial initially
+        int currentStageIndex = SceneManager.GetActiveScene().buildIndex - 1;
+
+        if (PlayerManager.Instance != null 
+            && currentStageIndex >= 0 
+            && PlayerManager.Instance.HasPlayedStage(currentStageIndex))
+        {
+            skipButton.SetActive(true);
+        }
+        else
+        {
+            skipButton.SetActive(false);
+        }
     }
 
     void Update()
@@ -43,6 +56,11 @@ public class TutorialPanelHandler : MonoBehaviour
         }
     }
 
+    public void SkipTutorial()
+    {
+        tutorialPanel.SetActive(false);
+         tutorialStarted = true;
+    }
     public void PreviousPanel()
     {
         if (currentPanelIndex > 0)
@@ -60,9 +78,20 @@ public class TutorialPanelHandler : MonoBehaviour
         }
     }
 
-    void EndTutorial()
+    public void EndTutorial()
     {
         tutorialPanel.SetActive(false);
         // Add any post-tutorial logic here (e.g., enable player control)
     }
+    
+        public void ForceCloseTutorial()
+    {
+        foreach (var panel in panels)
+            panel.SetActive(false);
+
+        tutorialPanel.SetActive(false);
+        tutorialStarted = false;
+    }
+
 }
+

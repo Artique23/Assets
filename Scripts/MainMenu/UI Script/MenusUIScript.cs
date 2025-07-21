@@ -16,6 +16,11 @@ public class MenusUIScript : MonoBehaviour
     [SerializeField] float bottomY, baseY;
     [SerializeField] float tweenDuration;
 
+    [SerializeField] private Button stage1Button;
+    [SerializeField] private Button stage2Button;
+    [SerializeField] private Button stage3Button;
+    [SerializeField] private Button stage4Button;
+
     GameManagerSaveAndLoad gameManager;
 
     #endregion
@@ -70,6 +75,7 @@ public class MenusUIScript : MonoBehaviour
         JPXCustomize.SetActive(false);
         JhayluxCustomize.SetActive(false);
         DreivusCustomize.SetActive(false);
+         UpdateLevelButtons();
     }
 
     #endregion
@@ -77,6 +83,16 @@ public class MenusUIScript : MonoBehaviour
 
     #region Canvas/Panel Activation
 
+    public void UpdateLevelButtons()
+    {
+        if (PlayerManager.Instance != null)
+        {
+            stage1Button.interactable = PlayerManager.Instance.IsLevelUnlocked(0);
+            stage2Button.interactable = PlayerManager.Instance.IsLevelUnlocked(1);
+            stage3Button.interactable = PlayerManager.Instance.IsLevelUnlocked(2);
+            stage4Button.interactable = PlayerManager.Instance.IsLevelUnlocked(3);
+        }
+    }
     public void ShowCustomizeMenu()
     {
         Debug.Log("Customize Menu is Visible...");
@@ -150,6 +166,32 @@ public class MenusUIScript : MonoBehaviour
         StoryModeUI.SetActive(false);
         SettingsUI.SetActive(false);
         AboutUI.SetActive(false);
+    }
+    public void DebugUnlockAllLevels()
+    {
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.UnlockAllStages(); // Unlock all levels
+            UpdateLevelButtons();                     // Refresh the button states
+            Debug.Log("✅ All stages unlocked and UI updated.");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ PlayerManager instance is null.");
+        }
+    }
+    public void ResetAllLevels()
+    {
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.ResetProgress(); // Your custom method to lock all levels again
+            UpdateLevelButtons();                    // Refresh the UI
+            Debug.Log("🔁 All stages reset and UI updated.");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ PlayerManager instance is null.");
+        }
     }
 
     public void ShowStartMenu()
